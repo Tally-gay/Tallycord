@@ -47,11 +47,11 @@ const settings = definePluginSettings({
         restartNeeded: true,
         // Web slate menu has proper spellcheck suggestions and image context menu is also pretty good,
         // so disable this by default. Vesktop just doesn't, so we force enable it there
-        hidden: IS_VESKTOP,
+        hidden: IS_TALLYTOP,
     }
 });
 
-const shouldAddBackMenus = () => IS_VESKTOP || settings.store.addBack;
+const shouldAddBackMenus = () => IS_TALLYTOP || settings.store.addBack;
 
 const MEDIA_PROXY_URL = "https://media.discordapp.net";
 const CDN_URL = "cdn.discordapp.com";
@@ -80,7 +80,7 @@ export default definePlugin({
     description: "Re-adds context menus missing in the web version of Discord: Links & Images (Copy/Open Link/Image), Text Area (Copy, Cut, Paste, SpellCheck)",
     authors: [Devs.Ven],
     enabledByDefault: true,
-    required: IS_VESKTOP,
+    required: IS_TALLYTOP,
 
     settings,
 
@@ -268,7 +268,7 @@ export default definePlugin({
             });
         }
 
-        if (IS_VESKTOP && VesktopNative.clipboard) {
+        if (IS_TALLYTOP && VesktopNative.clipboard) {
             VesktopNative.clipboard.copyImage(await imageData.arrayBuffer(), url);
             return;
         } else {
