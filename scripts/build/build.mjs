@@ -1,6 +1,6 @@
 #!/usr/bin/node
 /*
- * Vencord, a modification for Discord's desktop app
+ * Tallycord, a modification for Discord's desktop app
  * Copyright (c) 2022 Vendicated and contributors
  *
  * This program is free software: you can redistribute it and/or modify
@@ -76,7 +76,7 @@ const nodeCommonOpts = {
 };
 
 const sourceMapFooter = (s) =>
-    watch ? "" : `//# sourceMappingURL=vencord://${s}.js.map`;
+    watch ? "" : `//# sourceMappingURL=tallycord://${s}.js.map`;
 const sourcemap = watch ? "inline" : "external";
 
 /**
@@ -195,7 +195,6 @@ const buildConfigs = [
         },
     },
 
-    // Vencord Desktop main & renderer & preload
     {
         ...nodeCommonOpts,
         entryPoints: ["src/main/index.ts"],
