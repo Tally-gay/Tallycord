@@ -155,7 +155,7 @@ const buildConfigs = [
         define: {
             ...defines,
             IS_DISCORD_DESKTOP: "true",
-            IS_VESKTOP: "false",
+            IS_TALLYTOP: "false",
         },
     },
     {
@@ -175,7 +175,7 @@ const buildConfigs = [
         define: {
             ...defines,
             IS_DISCORD_DESKTOP: "true",
-            IS_VESKTOP: "false",
+            IS_TALLYTOP: "false",
         },
     },
     {
@@ -191,7 +191,7 @@ const buildConfigs = [
         define: {
             ...defines,
             IS_DISCORD_DESKTOP: "true",
-            IS_VESKTOP: "false",
+            IS_TALLYTOP: "false",
         },
     },
 
@@ -209,7 +209,7 @@ const buildConfigs = [
         define: {
             ...defines,
             IS_DISCORD_DESKTOP: "false",
-            IS_VESKTOP: "true",
+            IS_TALLYTOP: "true",
         },
     },
     {
@@ -229,7 +229,7 @@ const buildConfigs = [
         define: {
             ...defines,
             IS_DISCORD_DESKTOP: "false",
-            IS_VESKTOP: "true",
+            IS_TALLYTOP: "true",
         },
     },
     {
@@ -245,7 +245,7 @@ const buildConfigs = [
         define: {
             ...defines,
             IS_DISCORD_DESKTOP: "false",
-            IS_VESKTOP: "true",
+            IS_TALLYTOP: "true",
         },
     },
 ];
