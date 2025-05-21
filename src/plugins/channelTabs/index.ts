@@ -611,6 +611,7 @@ const plugin = definePlugin({
             pointer-events: auto;
             -webkit-app-region: no-drag;
             background-color: var(--background-secondary);
+            height: 32px
         }
         .tabs-scroll-container {
             display: flex;
@@ -692,7 +693,7 @@ const plugin = definePlugin({
             z-index: 5;
         }
 
-        .channel-tab.active-tab::before {
+        .channel-tab::before {
             content: "";
             position: absolute;
             top: 0;
@@ -700,8 +701,10 @@ const plugin = definePlugin({
             right: 0;
             bottom: 0;
             border-radius: 6px 6px 0 0;
+        }
 
-            border-top: 1px solid var(--text-normal);
+        .channel-tab.active-tab::before {
+            border-top: 0.1em solid var(--text-normal);
         }
 
         .tab-dragging {
@@ -748,6 +751,7 @@ const plugin = definePlugin({
             border-radius: 50%;
             opacity: 0.7;
             flex-shrink: 0;
+            z-index:999;
         }
 
         .tab-close:hover {
