@@ -167,6 +167,7 @@ const buildConfigs = [
         footer: {
             js:
                 "//# sourceURL=file:///TallycordRenderer\n" +
+                "const Vencord = Tallycord;\n" +
                 sourceMapFooter("renderer"),
         },
         globalName: "Tallycord",
@@ -221,6 +222,7 @@ const buildConfigs = [
         footer: {
             js:
                 "//# sourceURL=file:///TallycordDesktopRenderer\n" +
+                "const Vencord = Tallycord;\n" +
                 sourceMapFooter("tallycordDesktopRenderer"),
         },
         globalName: "Tallycord",
