@@ -1,20 +1,4 @@
-/*
- * Vencord, a modification for Discord's desktop app
- * Copyright (c) 2022 Vendicated and contributors
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
+
 
 import { openNotificationLogModal } from "@api/Notifications/notificationLog";
 import { useSettings } from "@api/Settings";
@@ -109,7 +93,7 @@ function VencordSettings() {
         ];
 
     return (
-        <SettingsTab title="Vencord Settings">
+        <SettingsTab title="Tallycord Settings">
             {isDonor(user?.id)
                 ? (
                     <SpecialCard
@@ -126,7 +110,7 @@ function VencordSettings() {
                 : (
                     <SpecialCard
                         title="Support the Project"
-                        description="Please consider supporting the development of Vencord by donating!"
+                        description="Please consider supporting the development of the original project Vencord by donating!"
                         cardImage={donateImage}
                         backgroundImage={DONOR_BACKGROUND_IMAGE}
                         backgroundColor="#c3a3ce"
@@ -139,7 +123,7 @@ function VencordSettings() {
                 <SpecialCard
                     title="Contributions"
                     subtitle="Thank you for contributing!"
-                    description="Since you've contributed to Vencord you now have a cool new badge!"
+                    description="Since you've contributed to Tallycord you now have a cool new badge!"
                     cardImage={COZY_CONTRIB_IMAGE}
                     backgroundImage={CONTRIB_BACKGROUND_IMAGE}
                     backgroundColor="#EDCC87"
@@ -273,7 +257,7 @@ function VencordSettings() {
                     serialize={identity} />
             </>}
 
-            <Forms.FormSection className={Margins.top16} title="Vencord Notifications" tag="h5">
+            <Forms.FormSection className={Margins.top16} title="Tallycord Notifications" tag="h5">
                 <Flex>
                     <Button onClick={openNotificationSettingsModal}>
                         Notification Settings
@@ -302,4 +286,4 @@ function isDonor(userId: string): boolean {
     return GuildMemberStore.getMember(VENCORD_GUILD_ID, userId)?.roles.includes(DONOR_ROLE_ID) || !!donorBadges;
 }
 
-export default wrapTab(VencordSettings, "Vencord Settings");
+export default wrapTab(VencordSettings, "Tallycord Settings");

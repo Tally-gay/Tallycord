@@ -1,5 +1,5 @@
 /*
- * Vencord, a modification for Discord's desktop app
+ * Tallycord, a modification for Discord's desktop app
  * Copyright (c) 2022 Vendicated and Megumin
  *
  * This program is free software: you can redistribute it and/or modify
@@ -23,7 +23,7 @@ import PatchHelperTab from "@components/VencordSettings/PatchHelperTab";
 import PluginsTab from "@components/VencordSettings/PluginsTab";
 import ThemesTab from "@components/VencordSettings/ThemesTab";
 import UpdaterTab from "@components/VencordSettings/UpdaterTab";
-import VencordTab from "@components/VencordSettings/VencordTab";
+import TallycordTab from "@components/VencordSettings/VencordTab";
 import { Devs } from "@utils/constants";
 import { getIntlMessage } from "@utils/discord";
 import definePlugin, { OptionType } from "@utils/types";
@@ -86,47 +86,47 @@ export default definePlugin({
         return [
             {
                 section: SectionTypes.HEADER,
-                label: "Vencord",
+                label: "Tallycord",
                 className: "vc-settings-header"
             },
             {
-                section: "VencordSettings",
-                label: "Vencord",
-                element: VencordTab,
+                section: "TallycordSettings",
+                label: "Tallycord",
+                element: TallycordTab,
                 className: "vc-settings"
             },
             {
-                section: "VencordPlugins",
+                section: "TallycordPlugins",
                 label: "Plugins",
                 element: PluginsTab,
                 className: "vc-plugins"
             },
             {
-                section: "VencordThemes",
+                section: "TallycordThemes",
                 label: "Themes",
                 element: ThemesTab,
                 className: "vc-themes"
             },
             !IS_UPDATER_DISABLED && {
-                section: "VencordUpdater",
+                section: "TallycordUpdater",
                 label: "Updater",
                 element: UpdaterTab,
                 className: "vc-updater"
             },
             {
-                section: "VencordCloud",
+                section: "TallycordCloud",
                 label: "Cloud",
                 element: CloudTab,
                 className: "vc-cloud"
             },
             {
-                section: "VencordSettingsSync",
+                section: "TallycordSettingsSync",
                 label: "Backup & Restore",
                 element: BackupAndRestoreTab,
                 className: "vc-backup-restore"
             },
             IS_DEV && {
-                section: "VencordPatchHelper",
+                section: "TallycordPatchHelper",
                 label: "Patch Helper",
                 element: PatchHelperTab,
                 className: "vc-patch-helper"
@@ -194,7 +194,7 @@ export default definePlugin({
     options: {
         settingsLocation: {
             type: OptionType.SELECT,
-            description: "Where to put the Vencord settings section",
+            description: "Where to put the Tallycord settings section",
             options: [
                 { label: "At the very top", value: "top" },
                 { label: "Above the Nitro section", value: "aboveNitro", default: true },
@@ -224,7 +224,7 @@ export default definePlugin({
     get additionalInfo() {
         if (IS_DEV) return " (Dev)";
         if (IS_WEB) return " (Web)";
-        if (IS_TALLYTOP) return ` (Vesktop v${VesktopNative.app.getVersion()})`;
+        if (IS_TALLYTOP) return ` (Tallytop v${VesktopNative.app.getVersion()})`;
         if (IS_STANDALONE) return " (Standalone)";
         return "";
     },
@@ -232,7 +232,7 @@ export default definePlugin({
     getInfoRows() {
         const { electronVersion, chromiumVersion, additionalInfo } = this;
 
-        const rows = [`Vencord ${gitHash}${additionalInfo}`];
+        const rows = [`Tallycord ${gitHash}${additionalInfo}`];
 
         if (electronVersion) rows.push(`Electron ${electronVersion}`);
         if (chromiumVersion) rows.push(`Chromium ${chromiumVersion}`);

@@ -1,20 +1,4 @@
-/*
- * Vencord, a modification for Discord's desktop app
- * Copyright (c) 2022 Vendicated and contributors
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
+
 
 export const REACT_GLOBAL = "Vencord.Webpack.Common.React";
 export const VENBOT_USER_ID = "1017176847865352332";
@@ -589,6 +573,15 @@ export const Devs = /* #__PURE__*/ Object.freeze({
         name: "samsam",
         id: 836452332387565589n,
     },
+
+    tally: {
+        name: "Tally",
+        id: 1014588310036951120n,
+    },
+    rayne: {
+        name: "raynecloudy",
+        id: 1336737164691505246n
+    }
 } satisfies Record<string, Dev>);
 
 // iife so #__PURE__ works correctly
