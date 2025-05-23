@@ -47,8 +47,8 @@ const plugin = definePlugin({
         tabPositions: [] as Array<{ id: string; left: number; width: number; }>,
     },
 
-    createTab(url, name, iconUrl) {
-        const tabId = Date.now().toString();
+    createTab(url, name, iconUrl, id?) {
+        const tabId = id ?? Date.now().toString();
         const tabElement = document.createElement("div");
         tabElement.className = "channel-tab";
         tabElement.dataset.tabId = tabId;
@@ -85,7 +85,7 @@ const plugin = definePlugin({
             name: name || "Untitled",
             iconUrl: iconUrl || "",
         };
-        const tabBar = this.getTabBar();
+        const tabBar = this.getTabBar(false);
         if (tabBar) {
             const tabsContainer = tabBar.querySelector(
                 ".tabs-scroll-container"
@@ -440,7 +440,7 @@ const plugin = definePlugin({
         };
     },
 
-    getTabBar() {
+    getTabBar(makeTabs = true) {
         let tabBar = document.getElementById("channel-tabs-bar");
         if (!tabBar) {
             tabBar = document.createElement("div");
@@ -517,16 +517,37 @@ const plugin = definePlugin({
             if (titleBar) {
                 titleBar.parentNode?.insertBefore(tabBar, titleBar);
             } else {
-                const appMount = document.getElementById("app-mount");
-                if (appMount) {
-                    appMount.firstChild?.insertBefore(
-                        tabBar,
-                        appMount.firstChild.firstChild
-                    );
-                }
+                const observer = new MutationObserver(() => {
+                    const titleBar = document.querySelector(".title_c38106");
+                    if (titleBar) {
+                        titleBar.parentNode?.insertBefore(
+                            tabBar!,
+                            titleBar
+                        );
+                        observer.disconnect();
+                    }
+                });
             }
             this.addStyles();
         }
+
+        // Ensure all tabs in the `tabs` object are present in the DOM
+        const tabsContainer = tabBar.querySelector(".tabs-scroll-container");
+
+        if (tabsContainer && makeTabs) {
+            Object.values(this.tabs).forEach((tab) => {
+                if (document.querySelector(`.channel-tab[data-tab-id="${tab.id}"]`))
+                    return;
+
+                this.createTab(
+                    tab.url,
+                    tab.name,
+                    tab.iconUrl,
+                    tab.id
+                );
+            });
+        }
+
         return tabBar;
     },
 
@@ -541,13 +562,19 @@ const plugin = definePlugin({
         const tabsContainer = tabBar.querySelector(".tabs-scroll-container");
         if (!tabsContainer) return;
 
+        tabsContainer.scrollBy({
+            left: direction === "left" ? -150 : 150,
+            behavior: "smooth"
+        });
+
         const scrollAmount = direction === "left" ? -15 : 15;
 
-        tabsContainer.scrollBy({ left: scrollAmount });
+        const step = () => {
+            tabsContainer.scrollLeft += scrollAmount;
+            this.scrollAnimationFrame = requestAnimationFrame(step);
+        };
 
-        this.scrollInterval = setInterval(() => {
-            tabsContainer.scrollBy({ left: scrollAmount * 10 });
-        }, 350);
+        step();
 
         this.updateScrollButtonVisibility();
     },
@@ -556,6 +583,10 @@ const plugin = definePlugin({
         if (this.scrollInterval) {
             clearInterval(this.scrollInterval);
             this.scrollInterval = null;
+        }
+        if (this.scrollAnimationFrame) {
+            cancelAnimationFrame(this.scrollAnimationFrame);
+            this.scrollAnimationFrame = null;
         }
     },
 
