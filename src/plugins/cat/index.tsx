@@ -73,123 +73,78 @@ function processString(input: string): string {
 //     '10': '\u200d', // Zero Width Joiner
 //     '11': '\u2060', // Word Joiner
 // };
+// Robust CatSound Encoder/Decoder (Buffer-free)
+
 const invisible = [...new Set("\u{2062}\u{200D}\u{2061}\u{2063}\u{200C}\u{200C}\u{200D}\u{2064}\u{2061}\u{200C}\u{2062}\u{2061}\u{2062}\u{200C}\u{2063}\u{200D}\u{2064}\u{200C}\u{2061}\u{2062}\u{200C}\u{2062}\u{2062}\u{200D}\u{200C}\u{200D}\u{2061}\u{200C}\u{2064}\u{2062}\u{200D}\u{200C}\u{2063}\u{2062}\u{2064}\u{2062}\u{200C}\u{2064}\u{2062}\u{2062}\u{2061}\u{200C}\u{2061}\u{2062}\u{2063}\u{200C}\u{2061}\u{200C}\u{200C}\u{2062}\u{2062}\u{2064}\u{200D}\u{2062}\u{200D}\u{2061}\u{200D}\u{2061}\u{2062}\u{200C}\u{200C}\u{2062}\u{200C}\u{2061}\u{200D}\u{200C}\u{2061}\u{200C}\u{2062}\u{200C}\u{200D}\u{2062}\u{2061}\u{200D}\u{2061}\u{2063}\u{2062}\u{2062}\u{2062}\u{2063}\u{200D}\u{200C}\u{200C}\u{2062}\u{2062}\u{2064}\u{2064}\u{2062}\u{200D}\u{2062}\u{200C}\u{200D}\u{2062}\u{200D}\u{2062}\u{2062}\u{2062}\u{200D}\u{2062}\u{200C}".split(''))];
-console.log("invisible", invisible);
+
 const zeroWidth: Record<string, string> = {
-    '00': invisible[0],
-    '01': invisible[1],
-    '10': invisible[2],
-    '11': invisible[3],
+    "00": invisible[0],
+    "01": invisible[1],
+    "10": invisible[2],
+    "11": invisible[3],
 };
-console.log("zerowidth", zeroWidth);
-console.log("invisible", invisible.join("\n"));
 
 const zeroWidthMap: Record<string, string> = Object.fromEntries(
     Object.entries(zeroWidth).map(([bits, char]) => [char, bits])
 );
-const catSounds = ['mew', 'mrr', 'nyam', 'raow', 'purr', 'merp', 'meow', 'wrr', 'meem', 'yawn', 'nyaa', 'rowr', 'mrra'];
 
-function getCatSoundIndex(char: string): number {
-    const c = char.toLowerCase();
-    const index = (c.charCodeAt(0) - 97) % catSounds.length;
-    return index;
+const catSounds = [
+    "mew", "mrr", "mraow", "mrow", "purr", "nya", "meow", "mewmew",
+    "mewmraow", "mewmrow", "mewpurr", "mewnya", "mewpurrnya", "mewmrowpurr",
+    "mewmraowpurr", "mewmrownya", "mewmraownya", "mewpurrnya", "mewnya",
+];
+
+function toBitString(input: string): string {
+    const encoder = new TextEncoder();
+    return Array.from(encoder.encode(input))
+        .map(byte => byte.toString(2).padStart(8, '0'))
+        .join('');
 }
 
-function getCaseMeta(char: string): string {
-    const code = char.charCodeAt(0);
-    const isUpper = code >= 65 && code <= 90;
-    const isFirstHalf = (char.toLowerCase().charCodeAt(0) - 97) < 13;
-    const bits = `${Number(isUpper)}${Number(isFirstHalf)}`;
-    return bits;
+function fromBitString(bitString: string): string {
+    const bytes = bitString.match(/.{8}/g)?.map(b => parseInt(b, 2)) ?? [];
+    const decoder = new TextDecoder();
+    return decoder.decode(new Uint8Array(bytes));
 }
 
-function encodeBitsToZW(bitString: string): string {
-    const chunks = bitString.match(/.{1,2}/g) ?? [];
-    return chunks.map(bits => zeroWidth[bits]).join('');
+function encodeBitsToZW(bits: string): string {
+    const chunks = bits.match(/.{1,2}/g) ?? [];
+    return chunks.map(b => zeroWidth[b.padEnd(2, '0')]).join('');
 }
 
 function decodeZWtoBits(zws: string): string {
     return [...zws].map(c => zeroWidthMap[c]).join('');
 }
 
-const isLetter = (char: string) => /^[a-zA-Z]$/.test(char);
+export function encode(input: string): string {
+    const bitString = toBitString(input);
+    const chunks = bitString.match(/.{1,32}/g) ?? [];
+    return chunks.map((chunk: string): string => {
+        const index: number = chunk.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % catSounds.length;
+        const sound: string = catSounds[index];
+        return sound + encodeBitsToZW(chunk);
+    }).join(invisible[4]);
+}
 
-function isCatSoundWithZWStart(str: string): boolean {
-    for (const sound of catSounds) {
-        const idx = str.indexOf(sound);
-        if (idx !== -1 && str[idx + sound.length] && str[idx + sound.length] in zeroWidthMap) {
-            return true;
-        }
+export function decode(input: string): string {
+    const words = input.split(invisible[4]);
+    let bitString = '';
+
+    for (const word of words) {
+        const match = catSounds.find(sound => word.startsWith(sound));
+        if (!match) continue;
+
+        const zw = word.slice(match.length);
+        bitString += decodeZWtoBits(zw);
     }
-    return false;
+
+    return fromBitString(bitString);
 }
 
 export function isEncoded(input: string): boolean {
-    return isCatSoundWithZWStart(input);
-}
-export function encode(input: string): string {
-    return input.split(' ').map(word => {
-        const chunks = word.match(/.{1,3}/g) ?? [];
-        return chunks.map(chunk => {
-            if (!isLetter(chunk[0])) return chunk;
-
-            const [first, ...rest] = chunk;
-            const sound = catSounds[getCatSoundIndex(first)];
-            const meta = getCaseMeta(first);
-            const restBits = rest.map(char => char.charCodeAt(0).toString(2).padStart(8, '0')).join('');
-            const restZW = encodeBitsToZW(restBits);
-            return sound + zeroWidth[meta] + restZW;
-        }).join('');
-    }).join(' ');
+    return catSounds.some(s => input.includes(s)) && [...input].some(c => c in zeroWidthMap);
 }
 
-export function decode(encoded: string): string {
-    return encoded.split(' ').map(wordChunk => {
-        let i = 0;
-        const output: string[] = [];
-
-        while (i < wordChunk.length) {
-            const matchedSound = catSounds.find(s => wordChunk.startsWith(s, i));
-            if (!matchedSound) {
-                output.push(wordChunk[i]);
-                i++;
-                continue;
-            }
-
-            const soundStart = i;
-            const soundEnd = i + matchedSound.length;
-            const metaZW = wordChunk[soundEnd];
-            const metaBits = zeroWidthMap[metaZW];
-
-            if (!metaBits) throw new Error('Missing or invalid meta marker');
-
-            i = soundEnd + 1;
-
-            let zws = '';
-            while (i < wordChunk.length && wordChunk[i] in zeroWidthMap) {
-                zws += wordChunk[i++];
-            }
-
-            const restBits = decodeZWtoBits(zws);
-            const chars: string[] = [];
-            for (let j = 0; j < restBits.length; j += 8) {
-                const byte = restBits.slice(j, j + 8);
-                if (byte.length === 8) {
-                    chars.push(String.fromCharCode(parseInt(byte, 2)));
-                }
-            }
-
-            const soundIndex = catSounds.indexOf(matchedSound);
-            const baseCode = metaBits[1] === '1' ? 97 : 110; // 'a' or 'n'
-            let firstChar = String.fromCharCode(baseCode + soundIndex);
-            if (metaBits[0] === '1') firstChar = firstChar.toUpperCase();
-
-            output.push(firstChar + chars.join(''));
-        }
-
-        return output.join('');
-    }).join(' ');
-}
 
 let decoded = new Set<string>();
 
