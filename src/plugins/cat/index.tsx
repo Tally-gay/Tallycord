@@ -88,11 +88,7 @@ const zeroWidthMap: Record<string, string> = Object.fromEntries(
     Object.entries(zeroWidth).map(([bits, char]) => [char, bits])
 );
 
-const catSounds = [
-    "mew", "mrr", "mraow", "mrow", "purr", "nya", "meow", "mewmew",
-    "mewmraow", "mewmrow", "mewpurr", "mewnya", "mewpurrnya", "mewmrowpurr",
-    "mewmraowpurr", "mewmrownya", "mewmraownya", "mewpurrnya", "mewnya",
-];
+const catSounds = ['mew', 'mrr', 'nyam', 'raow', 'purr', 'merp', 'meow', 'wrr', 'meem', 'yawn', 'nyaa', 'rowr', 'mrra'];
 
 function toBitString(input: string): string {
     const encoder = new TextEncoder();
