@@ -1,4 +1,4 @@
-import { addMessagePreSendListener, removeMessagePreSendListener } from "@api/MessageEvents";
+import { addMessagePreEditListener, addMessagePreSendListener, removeMessagePreSendListener } from "@api/MessageEvents";
 import definePlugin, { OptionType } from "@utils/types";
 import { CatIcon } from "./caticon";
 import { definePluginSettings } from "@api/Settings";
@@ -118,7 +118,7 @@ function decodeZWtoBits(zws: string): string {
 
 export function encode(input: string): string {
     const bitString = toBitString(input);
-    const chunks = bitString.match(/.{1,32}/g) ?? [];
+    const chunks = bitString.match(/.{1,64}/g) ?? [];
     return chunks.map((chunk: string): string => {
         const index: number = chunk.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % catSounds.length;
         const sound: string = catSounds[index];
@@ -230,6 +230,15 @@ export default definePlugin({
 
 
         this.preSend = addMessagePreSendListener(async (_, message) => {
+            if (!message.content || !settings.store.cat) return;
+            if (settings.store.translate) {
+                message.content = encode(message.content);
+            } else {
+                message.content = processString(message.content);
+            }
+        });
+
+        this.preEdit = addMessagePreEditListener(async (_, __, message) => {
             if (!message.content || !settings.store.cat) return;
             if (settings.store.translate) {
                 message.content = encode(message.content);
