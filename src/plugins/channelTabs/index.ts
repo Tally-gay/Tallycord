@@ -245,8 +245,6 @@ const plugin = definePlugin({
                 //     tabElement.style.transition = "";
                 //     tabElement.style.transform = "";
                 // }, 200);
-                const activeTab = tabsContainer.querySelector(".active-tab");
-
                 if (centerX < tabCenter) {
                     tabElement.parentNode?.insertBefore(
                         placeholder,
@@ -257,21 +255,6 @@ const plugin = definePlugin({
                         placeholder,
                         tabElement.nextSibling
                     );
-                }
-
-                if (activeTab) {
-                    const activeTabId = activeTab.getAttribute("data-tab-id");
-                    if (activeTabId) {
-                        tabsContainer
-                            .querySelectorAll(
-                                `.channel-tab[data-tab-id="${activeTabId}"]`
-                            )
-                            .forEach((tab) => {
-                                if (tab !== this.dragState.draggedTab) {
-                                    tab.classList.add("active-tab");
-                                }
-                            });
-                    }
                 }
 
                 this.updateTabPositions();
@@ -371,8 +354,14 @@ const plugin = definePlugin({
             name: tab.name,
             iconUrl: tab.iconUrl,
         });
-        const tabElement = tab.element;
-        tabElement.remove();
+        let tabElement = tab.element;
+        // Fallback: if element is not in DOM, try to find and remove it
+        if (!tabElement || !tabElement.parentNode) {
+            tabElement = document.querySelector(`.channel-tab[data-tab-id="${tabId}"]`);
+        }
+        if (tabElement && tabElement.parentNode) {
+            tabElement.parentNode.removeChild(tabElement);
+        }
         if (tabId === this.activeTabId) {
             const remainingTabIds = Object.keys(this.tabs).filter(
                 (id) => id !== tabId
@@ -531,22 +520,27 @@ const plugin = definePlugin({
             this.addStyles();
         }
 
-        // Ensure all tabs in the `tabs` object are present in the DOM
         const tabsContainer = tabBar.querySelector(".tabs-scroll-container");
 
         if (tabsContainer && makeTabs) {
-            Object.values(this.tabs).forEach((tab) => {
-                if (document.querySelector(`.channel-tab[data-tab-id="${tab.id}"]`))
-                    return;
+            const existingTabs = Array.from(document.querySelectorAll(".channel-tab[data-tab-id]")) as HTMLElement[];
 
-                this.createTab(
-                    tab.url,
-                    tab.name,
-                    tab.iconUrl,
-                    tab.id
-                );
+            const tabIds = new Set(Object.keys(this.tabs));
+
+            existingTabs.forEach((el) => {
+                const id = el.getAttribute("data-tab-id");
+                if (!id || !tabIds.has(id)) {
+                    el.remove();
+                }
+            });
+
+            Object.values(this.tabs).forEach((tab) => {
+                if (!document.querySelector(`.channel-tab[data-tab-id="${tab.id}"]`)) {
+                    this.createTab(tab.url, tab.name, tab.iconUrl, tab.id);
+                }
             });
         }
+
 
         return tabBar;
     },
