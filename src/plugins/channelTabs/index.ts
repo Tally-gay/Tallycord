@@ -93,7 +93,7 @@ const plugin = definePlugin({
             if (tabsContainer) {
                 const addBtn = tabsContainer.querySelector(".tab-add-button")!;
                 tabsContainer.insertBefore(tabElement, addBtn);
-                this.checkScrollability();
+                this.checkScrollability(true);
             }
         }
 
@@ -355,7 +355,6 @@ const plugin = definePlugin({
             iconUrl: tab.iconUrl,
         });
         let tabElement = tab.element;
-        // Fallback: if element is not in DOM, try to find and remove it
         if (!tabElement || !tabElement.parentNode) {
             tabElement = document.querySelector(`.channel-tab[data-tab-id="${tabId}"]`);
         }
@@ -506,16 +505,19 @@ const plugin = definePlugin({
             if (titleBar) {
                 titleBar.parentNode?.insertBefore(tabBar, titleBar);
             } else {
-                const observer = new MutationObserver(() => {
-                    const titleBar = document.querySelector(".title_c38106");
-                    if (titleBar) {
-                        titleBar.parentNode?.insertBefore(
-                            tabBar!,
-                            titleBar
-                        );
-                        observer.disconnect();
-                    }
-                });
+                if (!this._tabBarObserver) {
+                    this._tabBarObserver = new MutationObserver(() => {
+                        const titleBar = document.querySelector(".title_c38106");
+                        if (titleBar) {
+                            if (this._tabBarObserver) {
+                                this._tabBarObserver.disconnect();
+                                this._tabBarObserver = null;
+                            }
+                            setTimeout(() => this.getTabBar(makeTabs), 200);
+                        }
+                    });
+                    this._tabBarObserver.observe(document.body, { childList: true, subtree: true });
+                }
             }
             this.addStyles();
         }
@@ -536,11 +538,13 @@ const plugin = definePlugin({
 
             Object.values(this.tabs).forEach((tab) => {
                 if (!document.querySelector(`.channel-tab[data-tab-id="${tab.id}"]`)) {
-                    this.createTab(tab.url, tab.name, tab.iconUrl, tab.id);
+                    if (tab.element && !tabsContainer.contains(tab.element)) {
+                        const addBtn = tabsContainer.querySelector(".tab-add-button")!;
+                        tabsContainer.insertBefore(tab.element, addBtn);
+                    }
                 }
             });
         }
-
 
         return tabBar;
     },
@@ -584,8 +588,8 @@ const plugin = definePlugin({
         }
     },
 
-    checkScrollability() {
-        const tabBar = this.getTabBar();
+    checkScrollability(noRecurse = false) {
+        const tabBar = this.getTabBar(noRecurse);
         if (!tabBar) return;
 
         const tabsContainer = tabBar.querySelector(".tabs-scroll-container");
