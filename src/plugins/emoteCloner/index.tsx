@@ -1,7 +1,6 @@
 
 
 import { findGroupChildrenByChildId, NavContextMenuPatchCallback } from "@api/ContextMenu";
-import { migratePluginSettings } from "@api/Settings";
 import { CheckedTextInput } from "@components/CheckedTextInput";
 import { Devs } from "@utils/constants";
 import { Logger } from "@utils/Logger";
@@ -150,7 +149,7 @@ async function doClone(guildId: string, data: Sticker | Emoji) {
             message = JSON.parse(e.text).message;
         } catch { }
 
-        new Logger("ExpressionCloner").error("Failed to clone", data.name, "to", guildId, e);
+        new Logger("EmoteCloner").error("Failed to clone", data.name, "to", guildId, e);
         Toasts.show({
             message: "Failed to clone: " + message,
             type: Toasts.Type.FAILURE,
@@ -349,11 +348,10 @@ const expressionPickerPatch: NavContextMenuPatchCallback = (children, props: { t
     }
 };
 
-migratePluginSettings("ExpressionCloner", "EmoteCloner");
 export default definePlugin({
-    name: "ExpressionCloner",
+    name: "EmoteCloner",
     description: "Allows you to clone Emotes & Stickers to your own server (right click them)",
-    tags: ["StickerCloner", "EmoteCloner", "EmojiCloner"],
+    tags: ["StickerCloner"],
     authors: [Devs.Ven, Devs.Nuckyz],
     contextMenus: {
         "message": messageContextMenuPatch,
