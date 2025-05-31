@@ -11,7 +11,7 @@ import { findByCodeLazy, findStoreLazy } from "@webpack";
 import { Constants, EmojiStore, FluxDispatcher, Forms, GuildStore, Menu, PermissionsBits, PermissionStore, React, RestAPI, Toasts, Tooltip, UserStore } from "@webpack/common";
 import { Guild } from "discord-types/general";
 import { Promisable } from "type-fest";
-
+import { migratePluginSettings } from "@api/Settings";
 const StickersStore = findStoreLazy("StickersStore");
 const uploadEmoji = findByCodeLazy(".GUILD_EMOJIS(", "EMOJI_UPLOAD_START");
 
@@ -149,7 +149,7 @@ async function doClone(guildId: string, data: Sticker | Emoji) {
             message = JSON.parse(e.text).message;
         } catch { }
 
-        new Logger("EmoteCloner").error("Failed to clone", data.name, "to", guildId, e);
+        new Logger("ExpressionCloner").error("Failed to clone", data.name, "to", guildId, e);
         Toasts.show({
             message: "Failed to clone: " + message,
             type: Toasts.Type.FAILURE,
@@ -347,11 +347,11 @@ const expressionPickerPatch: NavContextMenuPatchCallback = (children, props: { t
         children.push(buildMenuItem("Sticker", () => fetchSticker(id)));
     }
 };
-
+migratePluginSettings("ExpressionCloner", "EmoteCloner");
 export default definePlugin({
-    name: "EmoteCloner",
+    name: "ExpressionCloner",
     description: "Allows you to clone Emotes & Stickers to your own server (right click them)",
-    tags: ["StickerCloner"],
+    tags: ["StickerCloner", "EmoteCloner", "EmojiCloner"],
     authors: [Devs.Ven, Devs.Nuckyz],
     contextMenus: {
         "message": messageContextMenuPatch,
