@@ -162,7 +162,7 @@ const rawBuildConfigs = [
     },
     {
         ...commonOpts,
-        entryPoints: ["src/Vencord.ts"],
+        entryPoints: ["src/Tallycord.ts"],
         outfile: "dist/renderer.js",
         format: "iife",
         target: ["esnext"],
@@ -171,7 +171,7 @@ const rawBuildConfigs = [
                 "//# sourceURL=file:///VencordRenderer\n" +
                 sourceMapFooter("renderer"),
         },
-        globalName: "Vencord",
+        globalName: "Tallycord",
         sourcemap,
         plugins: [globPlugins("discordDesktop"), ...commonRendererPlugins],
         define: {
@@ -219,7 +219,7 @@ const rawBuildConfigs = [
     },
     {
         ...commonOpts,
-        entryPoints: ["src/Vencord.ts"],
+        entryPoints: ["src/Tallycord.ts"],
         outfile: "dist/tallycordDesktopRenderer.js",
         format: "iife",
         target: ["esnext"],
@@ -228,7 +228,7 @@ const rawBuildConfigs = [
                 "//# sourceURL=file:///tallycordDesktopRenderer\n" +
                 sourceMapFooter("tallycordDesktopRenderer"),
         },
-        globalName: "Vencord",
+        globalName: "Tallycord",
         sourcemap,
         plugins: [globPlugins("vesktop"), ...commonRendererPlugins],
         define: {
@@ -257,22 +257,21 @@ const rawBuildConfigs = [
     },
 ];
 const buildConfigs = [...rawBuildConfigs].concat(
-    rawBuildConfigs
-        .filter((a) => a.outfile?.includes("vencord"))
-        .map((config) => {
-            // Clone the config to avoid mutating the original
-            const newConfig = { ...config };
-            newConfig.outfile = newConfig.outfile?.replace(
-                "vencord",
-                "tallycord"
-            );
-            console.log(
-                "Replacing vencord with tallycord in",
-                newConfig.outfile
-            );
+    rawBuildConfigs.filter((a) => a.outfile?.includes("vencord"))
+    // .map((config) => {
+    //     // Clone the config to avoid mutating the original
+    //     const newConfig = { ...config };
+    //     newConfig.outfile = newConfig.outfile?.replace(
+    //         "vencord",
+    //         "tallycord"
+    //     );
+    //     console.log(
+    //         "Replacing vencord with tallycord in",
+    //         newConfig.outfile
+    //     );
 
-            return newConfig;
-        })
+    //     return newConfig;
+    // })
 );
 console.log(
     "Build configs:",
