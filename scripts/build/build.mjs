@@ -255,12 +255,26 @@ const rawBuildConfigs = [
         },
     },
 ];
+const buildConfigs = [...rawBuildConfigs].concat(
+    rawBuildConfigs
+        .filter((a) => a.outfile?.includes("vencord"))
+        .map((config) => {
+            // Clone the config to avoid mutating the original
+            const newConfig = { ...config };
+            newConfig.outfile = newConfig.outfile?.replace(
+                "vencord",
+                "tallycord"
+            );
+            console.log(
+                "Replacing vencord with tallycord in",
+                newConfig.outfile
+            );
 
-await buildOrWatchAll(rawBuildConfigs);
-await buildOrWatchAll(
-    rawBuildConfigs.map((config) => {
-        config.outfile = config.outfile?.replace("vencord", "tallycord");
-
-        return config;
-    })
+            return newConfig;
+        })
 );
+console.log(
+    "Build configs:",
+    buildConfigs.map((a) => a.outfile)
+);
+await buildOrWatchAll(buildConfigs);
