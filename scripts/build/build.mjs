@@ -289,7 +289,9 @@ const DIST_FILES = [
     "dist/tallycordDesktopRenderer.js",
     "dist/tallycordDesktopPreload.js",
 ];
-const head = `var VesktopNative = TallytopNative;\nvar Tallycord = Vencord;\n`;
+const head =
+    `var VesktopNative = typeof TallytopNative !== "undefined" ? TallytopNative : undefined;\n` +
+    `var Tallycord = typeof Vencord !== "undefined" ? Vencord : undefined;\n`;
 
 for (const file of DIST_FILES) {
     const path = join(process.cwd(), file);
@@ -298,5 +300,7 @@ for (const file of DIST_FILES) {
         if (!content.startsWith(head)) {
             await writeFile(path, head + content, "utf8");
         }
-    } catch (e) {}
+    } catch (e) {
+        console.warn(`couldn't patch file: ${file}`, e);
+    }
 }
