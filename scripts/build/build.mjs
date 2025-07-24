@@ -277,4 +277,26 @@ console.log(
     "Build configs:",
     buildConfigs.map((a) => a.outfile)
 );
+
 await buildOrWatchAll(buildConfigs);
+
+import { readFile, writeFile } from "fs/promises";
+const DIST_FILES = [
+    "dist/patcher.js",
+    "dist/renderer.js",
+    "dist/preload.js",
+    "dist/tallycordDesktopMain.js",
+    "dist/tallycordDesktopRenderer.js",
+    "dist/tallycordDesktopPreload.js",
+];
+const head = `var VesktopNative = TallytopNative;\nvar Tallycord = Vencord;\n`;
+
+for (const file of DIST_FILES) {
+    const path = join(process.cwd(), file);
+    try {
+        let content = await readFile(path, "utf8");
+        if (!content.startsWith(head)) {
+            await writeFile(path, head + content, "utf8");
+        }
+    } catch (e) {}
+}
