@@ -146,6 +146,7 @@ const rawBuildConfigs = [
                 "//# sourceURL=file:///VencordPatcher\n" +
                 sourceMapFooter("patcher"),
         },
+
         sourcemap,
         plugins: [
             // @ts-ignore this is never undefined
@@ -202,11 +203,11 @@ const rawBuildConfigs = [
     {
         ...nodeCommonOpts,
         entryPoints: ["src/main/index.ts"],
-        outfile: "dist/vencordDesktopMain.js",
+        outfile: "dist/tallycordDesktopMain.js",
         footer: {
             js:
-                "//# sourceURL=file:///VencordDesktopMain\n" +
-                sourceMapFooter("vencordDesktopMain"),
+                "//# sourceURL=file:///tallycordDesktopMain\n" +
+                sourceMapFooter("tallycordDesktopMain"),
         },
         sourcemap,
         plugins: [...nodeCommonOpts.plugins, globNativesPlugin],
@@ -219,13 +220,13 @@ const rawBuildConfigs = [
     {
         ...commonOpts,
         entryPoints: ["src/Vencord.ts"],
-        outfile: "dist/vencordDesktopRenderer.js",
+        outfile: "dist/tallycordDesktopRenderer.js",
         format: "iife",
         target: ["esnext"],
         footer: {
             js:
-                "//# sourceURL=file:///VencordDesktopRenderer\n" +
-                sourceMapFooter("vencordDesktopRenderer"),
+                "//# sourceURL=file:///tallycordDesktopRenderer\n" +
+                sourceMapFooter("tallycordDesktopRenderer"),
         },
         globalName: "Vencord",
         sourcemap,
@@ -240,11 +241,11 @@ const rawBuildConfigs = [
     {
         ...nodeCommonOpts,
         entryPoints: ["src/preload.ts"],
-        outfile: "dist/vencordDesktopPreload.js",
+        outfile: "dist/tallycordDesktopPreload.js",
         footer: {
             js:
                 "//# sourceURL=file:///VencordPreload\n" +
-                sourceMapFooter("vencordDesktopPreload"),
+                sourceMapFooter("tallycordDesktopPreload"),
         },
         sourcemap,
         define: {
