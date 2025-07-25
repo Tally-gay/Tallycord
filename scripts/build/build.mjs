@@ -313,7 +313,7 @@ for (const file of DIST_FILES) {
     try {
         let content = await readFile(path, "utf8");
         if (!content.startsWith(head)) {
-            let newContent = head + content;
+            let newContent = head + content + content;
             for (const [search, replace] of replacements) {
                 newContent = newContent.replace(search, replace);
             }
