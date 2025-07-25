@@ -294,6 +294,18 @@ const head =
         `var VesktopNative = typeof TallytopNative !== "undefined" ? TallytopNative : undefined;`,
         `var Tallycord = typeof Vencord !== "undefined" ? Vencord : undefined;`,
         `var Vencord = typeof Tallycord !== "undefined" ? Tallycord : undefined;`,
+        `const linker = setInterval(() => {
+    if (typeof Tallycord !== "undefined" && typeof Vencord === "undefined") {
+        var Vencord = Tallycord;
+        clearInterval(linker);
+    } else if (typeof Vencord !== "undefined" && typeof Tallycord === "undefined") {
+        var Tallycord = Vencord;
+        clearInterval(linker);
+    } else if (typeof Vencord !== "undefined" && typeof Tallycord !== "undefined") {
+        clearInterval(linker);
+    }
+}, 1);
+`,
     ].join("\n") + "\n\n";
 
 /**
