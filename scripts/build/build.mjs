@@ -289,9 +289,11 @@ const DIST_FILES = [
     "dist/tallycordDesktopRenderer.js",
     "dist/tallycordDesktopPreload.js",
 ];
-const head =
-    `var VesktopNative = typeof TallytopNative !== "undefined" ? TallytopNative : undefined;\n` +
-    `var Tallycord = typeof Vencord !== "undefined" ? Vencord : undefined;\n`;
+const head = [
+    `var VesktopNative = typeof TallytopNative !== "undefined" ? TallytopNative : undefined;`,
+    `var Tallycord = typeof Vencord !== "undefined" ? Vencord : undefined;`,
+    `var Vencord = typeof Tallycord !== "undefined" ? Tallycord : undefined;`,
+].join("\n");
 
 for (const file of DIST_FILES) {
     const path = join(process.cwd(), file);
