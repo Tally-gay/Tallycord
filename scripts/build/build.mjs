@@ -289,18 +289,34 @@ const DIST_FILES = [
     "dist/tallycordDesktopRenderer.js",
     "dist/tallycordDesktopPreload.js",
 ];
-const head = [
-    `var VesktopNative = typeof TallytopNative !== "undefined" ? TallytopNative : undefined;`,
-    `var Tallycord = typeof Vencord !== "undefined" ? Vencord : undefined;`,
-    `var Vencord = typeof Tallycord !== "undefined" ? Tallycord : undefined;`,
-].join("\n");
+const head =
+    [
+        `var VesktopNative = typeof TallytopNative !== "undefined" ? TallytopNative : undefined;`,
+        `var Tallycord = typeof Vencord !== "undefined" ? Vencord : undefined;`,
+        `var Vencord = typeof Tallycord !== "undefined" ? Tallycord : undefined;`,
+    ].join("\n") + "\n\n";
+
+/**
+ * @type {[RegExp, string][]}
+ */
+const replacements = [
+    [
+        /var Tallycord=\(\(\)=>{/,
+        "var Tallycord=(()=>{ var Vencord = Tallycord;",
+    ],
+    [/var Vencord=\(\(\)=>{/, "var Vencord=(()=>{ var Tallycord = Vencord;"],
+];
 
 for (const file of DIST_FILES) {
     const path = join(process.cwd(), file);
     try {
         let content = await readFile(path, "utf8");
         if (!content.startsWith(head)) {
-            await writeFile(path, head + content, "utf8");
+            let newContent = head + content;
+            for (const [search, replace] of replacements) {
+                newContent = newContent.replace(search, replace);
+            }
+            await writeFile(path, newContent, "utf8");
         }
     } catch (e) {
         console.warn(`couldn't patch file: ${file}`, e);
