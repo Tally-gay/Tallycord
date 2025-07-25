@@ -300,11 +300,12 @@ const head =
  * @type {[RegExp, string][]}
  */
 const replacements = [
-    [
-        /var Tallycord=\(\(\)=>{/,
-        "var Tallycord=(()=>{ var Vencord = Tallycord;",
-    ],
-    [/var Vencord=\(\(\)=>{/, "var Vencord=(()=>{ var Tallycord = Vencord;"],
+    // [
+    //     /var Tallycord=\(\(\)=>{/,
+    //     "var Tallycord=(()=>{ var Vencord = Tallycord;",
+    // ],
+    // [/var Vencord=\(\(\)=>{/, "var Vencord=(()=>{ var Tallycord = Vencord;"],
+    [/\bVencord\b/g, "Tallycord"],
 ];
 
 for (const file of DIST_FILES) {
