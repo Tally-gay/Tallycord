@@ -257,21 +257,17 @@ const rawBuildConfigs = [
     },
 ];
 const buildConfigs = [...rawBuildConfigs].concat(
-    rawBuildConfigs.filter((a) => a.outfile?.includes("vencord"))
-    // .map((config) => {
-    //     // Clone the config to avoid mutating the original
-    //     const newConfig = { ...config };
-    //     newConfig.outfile = newConfig.outfile?.replace(
-    //         "vencord",
-    //         "tallycord"
-    //     );
-    //     console.log(
-    //         "Replacing vencord with tallycord in",
-    //         newConfig.outfile
-    //     );
+    rawBuildConfigs
+        .filter((a) => a.outfile?.includes("tallycord"))
+        .map((config) => {
+            const newConfig = { ...config };
+            newConfig.outfile = newConfig.outfile?.replace(
+                "tallycord",
+                "vencord"
+            );
 
-    //     return newConfig;
-    // })
+            return newConfig;
+        })
 );
 console.log(
     "Build configs:",
@@ -288,6 +284,9 @@ const DIST_FILES = [
     "dist/tallycordDesktopMain.js",
     "dist/tallycordDesktopRenderer.js",
     "dist/tallycordDesktopPreload.js",
+    "dist/vencordDesktopMain.js",
+    "dist/vencordDesktopRenderer.js",
+    "dist/vencordDesktopPreload.js",
 ];
 const head =
     [
@@ -306,6 +305,18 @@ const head =
     }
 }, 1);
 `,
+        `var linker2 = setInterval(() => {
+    if (typeof TallycordNative !== "undefined" && typeof VencordNative === "undefined") {
+        var VencordNative = Tallycord;
+        clearInterval(linker2);
+    } else if (typeof VencordNative !== "undefined" && typeof TallycordNative === "undefined") {
+        var TallycordNative = VencordNative;
+        clearInterval(linker2);
+    } else if (typeof VencordNative !== "undefined" && typeof TallycordNative !== "undefined") {
+        clearInterval(linker2);
+    }
+}, 1);
+`
     ].join("\n") + "\n\n";
 
 /**
@@ -321,6 +332,12 @@ const replacements = [
 ];
 
 for (const file of DIST_FILES) {
+    const configForFile = buildConfigs.find(
+        (c) => c.outfile === file || c.outfile === file.replace("vencord", "tallycord")
+    );
+    if (!configForFile) {
+        console.warn(`no build config for file: ${file}`);
+    }
     const path = join(process.cwd(), file);
     try {
         let content = await readFile(path, "utf8");
@@ -328,6 +345,10 @@ for (const file of DIST_FILES) {
             let newContent = head + content + head;
             for (const [search, replace] of replacements) {
                 newContent = newContent.replace(search, replace);
+            }
+            for (const define of Object.entries(configForFile?.define || {})) {
+                const [key, value] = define;
+                newContent += `var ${key} = ${value};\n`;
             }
             await writeFile(path, newContent, "utf8");
         }
