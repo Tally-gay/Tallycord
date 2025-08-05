@@ -348,7 +348,8 @@ for (const file of DIST_FILES) {
             }
             for (const define of Object.entries(configForFile?.define || {})) {
                 const [key, value] = define;
-                newContent += `var ${key} = ${value};\n`;
+                if (key === "process.platform") continue;
+                newContent = `var ${key} = ${value};\n` + newContent;
             }
             await writeFile(path, newContent, "utf8");
         }
