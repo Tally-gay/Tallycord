@@ -637,7 +637,7 @@ const plugin = definePlugin({
             right: 6em;
             top: 0;
             left: 0;
-            color: var(--text-normal);
+            color: var(--text-default);
             z-index: 100;
             pointer-events: auto;
             -webkit-app-region: no-drag;
@@ -735,7 +735,7 @@ const plugin = definePlugin({
         }
 
         .channel-tab.active-tab::before {
-            border-top: 0.1em solid var(--text-normal);
+            border-top: 0.1em solid var(--text-default);
         }
 
         .tab-dragging {
@@ -769,7 +769,7 @@ const plugin = definePlugin({
             overflow: hidden;
             white-space: nowrap;
             font-size: 14px;
-            color: var(--text-normal);
+            color: var(--text-default);
         }
 
         .tab-close {
