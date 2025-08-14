@@ -161,7 +161,7 @@ const rawBuildConfigs = [
     },
     {
         ...commonOpts,
-        entryPoints: ["src/Vencord.ts"],
+        entryPoints: ["src/Tallycord.ts"],
         outfile: "dist/renderer.js",
         format: "iife",
         target: ["esnext"],
@@ -170,7 +170,7 @@ const rawBuildConfigs = [
                 "//# sourceURL=file:///VencordRenderer\n" +
                 sourceMapFooter("renderer"),
         },
-        globalName: "Vencord",
+        globalName: "Tallycord",
         sourcemap,
         plugins: [globPlugins("discordDesktop"), ...commonRendererPlugins],
         define: {
