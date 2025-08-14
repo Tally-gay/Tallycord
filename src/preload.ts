@@ -21,10 +21,11 @@ import { contextBridge, webFrame } from "electron";
 import { readFileSync, watch } from "fs";
 import { join } from "path";
 
-import VencordNative from "./VencordNative";
-
-contextBridge.exposeInMainWorld("VencordNative", VencordNative);
-
+import * as TallycordNative from "./TallycordNative";
+import * as Vencord from "./Vencord";
+contextBridge.exposeInMainWorld("TallycordNative", TallycordNative);
+contextBridge.exposeInMainWorld("VencordNative", Vencord);
+contextBridge.exposeInMainWorld("Tallycord", Vencord);
 // Discord
 if (location.protocol !== "data:") {
     // #region cssInsert
