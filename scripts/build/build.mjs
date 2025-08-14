@@ -146,7 +146,6 @@ const rawBuildConfigs = [
                 "//# sourceURL=file:///VencordPatcher\n" +
                 sourceMapFooter("patcher"),
         },
-
         sourcemap,
         plugins: [
             // @ts-ignore this is never undefined
@@ -162,7 +161,7 @@ const rawBuildConfigs = [
     },
     {
         ...commonOpts,
-        entryPoints: ["src/Tallycord.ts"],
+        entryPoints: ["src/Vencord.ts"],
         outfile: "dist/renderer.js",
         format: "iife",
         target: ["esnext"],
@@ -171,7 +170,7 @@ const rawBuildConfigs = [
                 "//# sourceURL=file:///VencordRenderer\n" +
                 sourceMapFooter("renderer"),
         },
-        globalName: "Tallycord",
+        globalName: "Vencord",
         sourcemap,
         plugins: [globPlugins("discordDesktop"), ...commonRendererPlugins],
         define: {
@@ -203,11 +202,11 @@ const rawBuildConfigs = [
     {
         ...nodeCommonOpts,
         entryPoints: ["src/main/index.ts"],
-        outfile: "dist/tallycordDesktopMain.js",
+        outfile: "dist/vencordDesktopMain.js",
         footer: {
             js:
-                "//# sourceURL=file:///tallycordDesktopMain\n" +
-                sourceMapFooter("tallycordDesktopMain"),
+                "//# sourceURL=file:///VencordDesktopMain\n" +
+                sourceMapFooter("vencordDesktopMain"),
         },
         sourcemap,
         plugins: [...nodeCommonOpts.plugins, globNativesPlugin],
@@ -219,16 +218,16 @@ const rawBuildConfigs = [
     },
     {
         ...commonOpts,
-        entryPoints: ["src/Tallycord.ts"],
-        outfile: "dist/tallycordDesktopRenderer.js",
+        entryPoints: ["src/Vencord.ts"],
+        outfile: "dist/vencordDesktopRenderer.js",
         format: "iife",
         target: ["esnext"],
         footer: {
             js:
-                "//# sourceURL=file:///tallycordDesktopRenderer\n" +
-                sourceMapFooter("tallycordDesktopRenderer"),
+                "//# sourceURL=file:///VencordDesktopRenderer\n" +
+                sourceMapFooter("vencordDesktopRenderer"),
         },
-        globalName: "Tallycord",
+        globalName: "Vencord",
         sourcemap,
         plugins: [globPlugins("vesktop"), ...commonRendererPlugins],
         define: {
@@ -241,11 +240,11 @@ const rawBuildConfigs = [
     {
         ...nodeCommonOpts,
         entryPoints: ["src/preload.ts"],
-        outfile: "dist/tallycordDesktopPreload.js",
+        outfile: "dist/vencordDesktopPreload.js",
         footer: {
             js:
                 "//# sourceURL=file:///VencordPreload\n" +
-                sourceMapFooter("tallycordDesktopPreload"),
+                sourceMapFooter("vencordDesktopPreload"),
         },
         sourcemap,
         define: {
@@ -256,104 +255,12 @@ const rawBuildConfigs = [
         },
     },
 ];
-const buildConfigs = [...rawBuildConfigs].concat(
-    rawBuildConfigs
-        .filter((a) => a.outfile?.includes("tallycord"))
-        .map((config) => {
-            const newConfig = { ...config };
-            newConfig.outfile = newConfig.outfile?.replace(
-                "tallycord",
-                "vencord"
-            );
 
-            return newConfig;
-        })
+await buildOrWatchAll(rawBuildConfigs);
+await buildOrWatchAll(
+    rawBuildConfigs.map((config) => {
+        config.outfile = config.outfile?.replace("vencord", "tallycord");
+
+        return config;
+    })
 );
-console.log(
-    "Build configs:",
-    buildConfigs.map((a) => a.outfile)
-);
-
-await buildOrWatchAll(buildConfigs);
-
-import { readFile, writeFile } from "fs/promises";
-const DIST_FILES = [
-    "dist/patcher.js",
-    "dist/renderer.js",
-    "dist/preload.js",
-    "dist/tallycordDesktopMain.js",
-    "dist/tallycordDesktopRenderer.js",
-    "dist/tallycordDesktopPreload.js",
-    "dist/vencordDesktopMain.js",
-    "dist/vencordDesktopRenderer.js",
-    "dist/vencordDesktopPreload.js",
-];
-const head =
-    [
-        `var VesktopNative = typeof TallytopNative !== "undefined" ? TallytopNative : undefined;`,
-        `var Tallycord = typeof Vencord !== "undefined" ? Vencord : undefined;`,
-        `var Vencord = typeof Tallycord !== "undefined" ? Tallycord : undefined;`,
-        `var linker = setInterval(() => {
-    if (typeof Tallycord !== "undefined" && typeof Vencord === "undefined") {
-        var Vencord = Tallycord;
-        clearInterval(linker);
-    } else if (typeof Vencord !== "undefined" && typeof Tallycord === "undefined") {
-        var Tallycord = Vencord;
-        clearInterval(linker);
-    } else if (typeof Vencord !== "undefined" && typeof Tallycord !== "undefined") {
-        clearInterval(linker);
-    }
-}, 1);
-`,
-        `var linker2 = setInterval(() => {
-    if (typeof TallycordNative !== "undefined" && typeof VencordNative === "undefined") {
-        var VencordNative = Tallycord;
-        clearInterval(linker2);
-    } else if (typeof VencordNative !== "undefined" && typeof TallycordNative === "undefined") {
-        var TallycordNative = VencordNative;
-        clearInterval(linker2);
-    } else if (typeof VencordNative !== "undefined" && typeof TallycordNative !== "undefined") {
-        clearInterval(linker2);
-    }
-}, 1);
-`
-    ].join("\n") + "\n\n";
-
-/**
- * @type {[RegExp, string][]}
- */
-const replacements = [
-    // [
-    //     /var Tallycord=\(\(\)=>{/,
-    //     "var Tallycord=(()=>{ var Vencord = Tallycord;",
-    // ],
-    // [/var Vencord=\(\(\)=>{/, "var Vencord=(()=>{ var Tallycord = Vencord;"],
-    [/\bVencord\b/g, "Tallycord"],
-];
-
-for (const file of DIST_FILES) {
-    const configForFile = buildConfigs.find(
-        (c) => c.outfile === file || c.outfile === file.replace("vencord", "tallycord")
-    );
-    if (!configForFile) {
-        console.warn(`no build config for file: ${file}`);
-    }
-    const path = join(process.cwd(), file);
-    try {
-        let content = await readFile(path, "utf8");
-        if (!content.startsWith(head)) {
-            let newContent = head + content + head;
-            for (const [search, replace] of replacements) {
-                newContent = newContent.replace(search, replace);
-            }
-            for (const define of Object.entries(configForFile?.define || {})) {
-                const [key, value] = define;
-                if (key === "process.platform") continue;
-                newContent = `var ${key} = ${value};\n` + newContent;
-            }
-            await writeFile(path, newContent, "utf8");
-        }
-    } catch (e) {
-        console.warn(`couldn't patch file: ${file}`, e);
-    }
-}
