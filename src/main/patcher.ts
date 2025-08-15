@@ -26,7 +26,7 @@ import { IS_VANILLA } from "./utils/constants";
 
 console.log("[Vencord] Starting up...");
 
-// Our injector file at app/index.js
+// Our injector file at app/index.jss
 const injectorPath = require.main!.filename;
 
 // special discord_arch_electron injection method
