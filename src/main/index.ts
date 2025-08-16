@@ -26,7 +26,6 @@ import { RendererSettings } from "./settings";
 import { IS_VANILLA, THEMES_DIR } from "./utils/constants";
 import { installExt } from "./utils/extensions";
 
-
 if (IS_TALLYTOP || !IS_VANILLA) {
     app.whenReady().then(() => {
         protocol.handle("vencord", ({ url: unsafeUrl }) => {
