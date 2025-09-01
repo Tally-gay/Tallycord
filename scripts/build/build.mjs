@@ -230,15 +230,15 @@ async function replaceVencordWithTallycord() {
 
                 // Replace all variations while preserving case
                 content = content
-                    .replace(/(?<!api\.)VencordNative/g, 'TallycordNative')
-                    .replace(/(?<!api\.)vencordNative/g, 'tallycordNative')
-                    .replace(/(?<!api\.)VENCORDNATIVE/g, 'TALLYCORDNATIVE')
-                    .replace(/(?<!api\.)Vencord/g, 'Tallycord')
-                    .replace(/(?<!api\.)vencord/g, 'tallycord')
-                    .replace(/(?<!api\.)VENCORD/g, 'TALLYCORD')
-                    .replace(/(?<!api\.)VesktopNative/g, 'TallytopNative')
-                    .replace(/(?<!api\.)vesktopNative/g, 'tallytopNative')
-                    .replace(/(?<!api\.)VESKTOPNATIVE/g, 'TALLYTOPNATIVE');
+                    .replace(/VencordNative(?!\.dev)/g, 'TallycordNative')
+                    .replace(/vencordNative(?!\.dev)/g, 'tallycordNative')
+                    .replace(/VENCORDNATIVE(?!\.dev)/g, 'TALLYCORDNATIVE')
+                    .replace(/Vencord(?!\.dev)/g, 'Tallycord')
+                    .replace(/vencord(?!\.dev)/g, 'tallycord')
+                    .replace(/VENCORD(?!\.dev)/g, 'TALLYCORD')
+                    .replace(/VesktopNative(?!\.dev)/g, 'TallytopNative')
+                    .replace(/vesktopNative(?!\.dev)/g, 'tallytopNative')
+                    .replace(/VESKTOPNATIVE(?!\.dev)/g, 'TALLYTOPNATIVE');
 
                 await writeFile(filePath, content);
                 console.log(`Updated ${file}`);
