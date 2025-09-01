@@ -21,6 +21,7 @@
 
 import { readdir } from "fs/promises";
 import { join } from "path";
+import { readFile, writeFile } from "fs/promises";
 
 import { BUILD_TIMESTAMP, commonOpts, exists, globPlugins, IS_DEV, IS_REPORTER, IS_STANDALONE, IS_UPDATER_DISABLED, resolvePluginName, VERSION, commonRendererPlugins, watch, buildOrWatchAll, stringifyValues } from "./common.mjs";
 
@@ -55,7 +56,7 @@ const nodeCommonOpts = {
     external: ["electron", "original-fs", "~pluginNatives", ...commonOpts.external]
 };
 
-const sourceMapFooter = s => watch ? "" : `//# sourceMappingURL=vencord://${s}.js.map`;
+const sourceMapFooter = s => watch ? "" : `//# sourceMappingURL=tallycord://${s}.js.map`;
 const sourcemap = watch ? "inline" : "external";
 
 /**
@@ -113,17 +114,18 @@ const buildConfigs = ([
         ...nodeCommonOpts,
         entryPoints: ["src/main/index.ts"],
         outfile: "dist/patcher.js",
-        footer: { js: "//# sourceURL=file:///VencordPatcher\n" + sourceMapFooter("patcher") },
+        footer: { js: "//# sourceURL=file:///TallycordPatcher\n" + sourceMapFooter("patcher") },
         sourcemap,
         plugins: [
             // @ts-ignore this is never undefined
-            ...nodeCommonOpts.plugins,
+            ...(nodeCommonOpts.plugins || []),
             globNativesPlugin
         ],
         define: {
             ...defines,
             IS_DISCORD_DESKTOP: "true",
-            IS_VESKTOP: "false"
+            IS_VESKTOP: "false",
+            IS_TALLYTOP: "false"
         }
     },
     {
@@ -132,8 +134,8 @@ const buildConfigs = ([
         outfile: "dist/renderer.js",
         format: "iife",
         target: ["esnext"],
-        footer: { js: "//# sourceURL=file:///VencordRenderer\n" + sourceMapFooter("renderer") },
-        globalName: "Vencord",
+        footer: { js: "//# sourceURL=file:///TallycordRenderer\n" + sourceMapFooter("renderer") },
+        globalName: "Tallycord",
         sourcemap,
         plugins: [
             globPlugins("discordDesktop"),
@@ -142,47 +144,50 @@ const buildConfigs = ([
         define: {
             ...defines,
             IS_DISCORD_DESKTOP: "true",
-            IS_VESKTOP: "false"
+            IS_VESKTOP: "false",
+            IS_TALLYTOP: "false"
         }
     },
     {
         ...nodeCommonOpts,
         entryPoints: ["src/preload.ts"],
         outfile: "dist/preload.js",
-        footer: { js: "//# sourceURL=file:///VencordPreload\n" + sourceMapFooter("preload") },
+        footer: { js: "//# sourceURL=file:///TallycordPreload\n" + sourceMapFooter("preload") },
         sourcemap,
         define: {
             ...defines,
             IS_DISCORD_DESKTOP: "true",
-            IS_VESKTOP: "false"
+            IS_VESKTOP: "false",
+            IS_TALLYTOP: "false"
         }
     },
 
-    // Vencord Desktop main & renderer & preload
+    // Tallycord Desktop main & renderer & preload
     {
         ...nodeCommonOpts,
         entryPoints: ["src/main/index.ts"],
-        outfile: "dist/vencordDesktopMain.js",
-        footer: { js: "//# sourceURL=file:///VencordDesktopMain\n" + sourceMapFooter("vencordDesktopMain") },
+        outfile: "dist/tallycordDesktopMain.js",
+        footer: { js: "//# sourceURL=file:///TallycordDesktopMain\n" + sourceMapFooter("tallycordDesktopMain") },
         sourcemap,
         plugins: [
-            ...nodeCommonOpts.plugins,
+            ...(nodeCommonOpts.plugins || []),
             globNativesPlugin
         ],
         define: {
             ...defines,
             IS_DISCORD_DESKTOP: "false",
-            IS_VESKTOP: "true"
+            IS_VESKTOP: "true",
+            IS_TALLYTOP: "true"
         }
     },
     {
         ...commonOpts,
         entryPoints: ["src/Vencord.ts"],
-        outfile: "dist/vencordDesktopRenderer.js",
+        outfile: "dist/tallycordDesktopRenderer.js",
         format: "iife",
         target: ["esnext"],
-        footer: { js: "//# sourceURL=file:///VencordDesktopRenderer\n" + sourceMapFooter("vencordDesktopRenderer") },
-        globalName: "Vencord",
+        footer: { js: "//# sourceURL=file:///TallycordDesktopRenderer\n" + sourceMapFooter("tallycordDesktopRenderer") },
+        globalName: "Tallycord",
         sourcemap,
         plugins: [
             globPlugins("vesktop"),
@@ -191,27 +196,67 @@ const buildConfigs = ([
         define: {
             ...defines,
             IS_DISCORD_DESKTOP: "false",
-            IS_VESKTOP: "true"
+            IS_VESKTOP: "true",
+            IS_TALLYTOP: "true",
         }
     },
     {
         ...nodeCommonOpts,
         entryPoints: ["src/preload.ts"],
-        outfile: "dist/vencordDesktopPreload.js",
-        footer: { js: "//# sourceURL=file:///VencordPreload\n" + sourceMapFooter("vencordDesktopPreload") },
+        outfile: "dist/tallycordDesktopPreload.js",
+        footer: { js: "//# sourceURL=file:///TallycordPreload\n" + sourceMapFooter("tallycordDesktopPreload") },
         sourcemap,
         define: {
             ...defines,
             IS_DISCORD_DESKTOP: "false",
-            IS_VESKTOP: "true"
+            IS_VESKTOP: "true",
+            IS_TALLYTOP: "true"
         }
     }
 ]);
 
+/**
+ * Replace Vencord/VencordNative with Tallycord/TallycordNative in built files
+ */
+async function replaceVencordWithTallycord() {
+    const distPath = "./dist";
+    const files = await readdir(distPath);
+
+    for (const file of files) {
+        if (file.endsWith('.js') || file.endsWith('.css') || file.endsWith('.map')) {
+            const filePath = join(distPath, file);
+            try {
+                let content = await readFile(filePath, 'utf-8');
+
+                // Replace all variations while preserving case
+                content = content
+                    .replace(/VencordNative/g, 'TallycordNative')
+                    .replace(/vencordNative/g, 'tallycordNative')
+                    .replace(/VENCORDNATIVE/g, 'TALLYCORDNATIVE')
+                    .replace(/Vencord/g, 'Tallycord')
+                    .replace(/vencord/g, 'tallycord')
+                    .replace(/VENCORD/g, 'TALLYCORD');
+
+                await writeFile(filePath, content);
+                console.log(`Updated ${file}`);
+            } catch (error) {
+                console.warn(`Failed to update ${file}:`, error instanceof Error ? error.message : String(error));
+            }
+        }
+    }
+}
+
 await buildOrWatchAll(buildConfigs);
 await buildOrWatchAll(buildConfigs.map(b => ({
     ...b,
-    outfile: b.outfile?.replace("vencord", "tallycord")
+    outfile: b.outfile?.replace("tallycord", "tallycord")
 })));
+
+// Automatically replace Vencord with Tallycord in all built files
+if (!watch) {
+    console.log("Replacing Vencord with Tallycord in built files...");
+    await replaceVencordWithTallycord();
+    console.log("String replacement complete!");
+}
 
 
