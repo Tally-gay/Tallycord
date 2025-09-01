@@ -235,7 +235,10 @@ async function replaceVencordWithTallycord() {
                     .replace(/VENCORDNATIVE/g, 'TALLYCORDNATIVE')
                     .replace(/Vencord/g, 'Tallycord')
                     .replace(/vencord/g, 'tallycord')
-                    .replace(/VENCORD/g, 'TALLYCORD');
+                    .replace(/VENCORD/g, 'TALLYCORD')
+                    .replace(/VesktopNative/g, 'TallytopNative')
+                    .replace(/vesktopNative/g, 'tallytopNative')
+                    .replace(/VESKTOPNATIVE/g, 'TALLYTOPNATIVE');
 
                 await writeFile(filePath, content);
                 console.log(`Updated ${file}`);
