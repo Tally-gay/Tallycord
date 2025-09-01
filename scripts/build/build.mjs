@@ -209,3 +209,9 @@ const buildConfigs = ([
 ]);
 
 await buildOrWatchAll(buildConfigs);
+await buildOrWatchAll(buildConfigs.map(b => ({
+    ...b,
+    outfile: b.outfile?.replace("vencord", "tallycord")
+})));
+
+
