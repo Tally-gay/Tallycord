@@ -219,8 +219,11 @@ function ensureAllowedState(cat: typeof cats[number]) {
 function refreshCats() {
     if (!enabled) return;
     const desired = settings.store.number || 0;
+    const target = (typeof desired === "number" && Number.isFinite(desired))
+        ? Math.max(0, Math.floor(desired))
+        : 0;
 
-    while (cats.length < desired) {
+    while (cats.length < target) {
         const oneko = new Oneko();
         oneko.source = settings.store.randomSkins
             ? getSkinURL(randomSkin())
@@ -238,8 +241,10 @@ function refreshCats() {
         });
     }
 
-    while (cats.length > desired) {
-        cats.pop()?.oneko.element?.remove();
+    while (cats.length > target) {
+        const removed = cats.pop();
+        removed?.oneko.element?.remove();
+        removed?.targetMarker?.remove();
     }
 
     cats.forEach(cat => ensureAllowedState);
