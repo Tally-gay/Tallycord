@@ -21,28 +21,26 @@ function applyGoogleFont(fontInput: string, target: "main" | "mono") {
     }
 
     styleTag.textContent = `
-        @import url('${fontUrl}');
-        ${target === "main"
+    @import url('${fontUrl}');
+    ${target === "main"
             ? `
-                :not(code):not(pre):not(.codeBlock-2FSg53):not(.markup-eYLPri code):not(.hljs):not([class*="code"]) * {
-                    font-family: '${fontName}', sans-serif !important;
-                }
-                :not(code):not(pre):not(.codeBlock-2FSg53):not(.markup-eYLPri code):not(.hljs):not([class*="code"]) {
-                    font-family: '${fontName}', sans-serif !important;
-                }
-                `
+            :not(code):not(pre):not(.codeBlock-2FSg53):not(.markup-eYLPri code):not(.hljs):not([class*="code"]):not([class^="dnsFont__"]) {
+                font-family: '${fontName}', sans-serif !important;
+            }
+        `
             : `
-                code,
-                pre,
-                .codeBlock-2FSg53,
-                .markup-eYLPri code,
-                .hljs,
-                [class*="code"] {
-                    font-family: '${fontName}', monospace !important;
-                }
-            `
+            code,
+            pre,
+            .codeBlock-2FSg53,
+            .markup-eYLPri code,
+            .hljs,
+            [class*="code"] {
+                font-family: '${fontName}', monospace !important;
+            }
+        `
         }
-    `;
+`;
+
 }
 
 function disableGoogleFont(target: "main" | "mono") {
