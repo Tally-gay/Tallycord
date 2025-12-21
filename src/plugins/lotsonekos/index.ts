@@ -220,7 +220,7 @@ function refreshCats() {
     if (!enabled) return;
     const desired = settings.store.number || 0;
     const target = (typeof desired === "number" && Number.isFinite(desired))
-        ? Math.max(0, Math.floor(desired))
+        ? Math.min(Math.max(0, Math.floor(desired)), 1000)
         : 0;
 
     while (cats.length < target) {
