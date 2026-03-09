@@ -447,7 +447,7 @@ export const Devs = /* #__PURE__*/ Object.freeze({
     },
     nin0dev: {
         name: "nin0dev",
-        id: 886685857560539176n,
+        id: 1395533040914141235n,
     },
     Elvyra: {
         name: "Elvyra",
@@ -477,9 +477,9 @@ export const Devs = /* #__PURE__*/ Object.freeze({
         name: "puv",
         id: 469441552251355137n,
     },
-    Kodarru: {
-        name: "Kodarru",
-        id: 785227396218748949n,
+    IcedMarina: {
+        name: "icedmarina",
+        id: 594406131670188042n,
     },
     nakoyasha: {
         name: "nakoyasha",
@@ -491,7 +491,7 @@ export const Devs = /* #__PURE__*/ Object.freeze({
     },
     iamme: {
         name: "i am me",
-        id: 984392761929256980n
+        id: 984392761929256980n,
     },
     Byeoon: {
         name: "byeoon",
@@ -623,11 +623,11 @@ export const Devs = /* #__PURE__*/ Object.freeze({
     },
     alfred: {
         name: "alfred",
-        id: 1038466644353232967n
+        id: 1038466644353232967n,
     },
     vv: {
         name: "VV",
-        id: 254866377087778816n
+        id: 254866377087778816n,
     },
     u32: {
         name: "u32",
@@ -637,14 +637,6 @@ export const Devs = /* #__PURE__*/ Object.freeze({
         name: "prism",
         id: 390884143749136386n,
     },
-    tally: {
-        name: "Tally",
-        id: 1014588310036951120n
-    },
-    rayne: {
-        name: "raynecloudy",
-        id: 1336737164691505246n
-    }
 } satisfies Record<string, Dev>);
 
 // iife so #__PURE__ works correctly
@@ -653,6 +645,6 @@ export const DevsById = /* #__PURE__*/ (() =>
         Object.fromEntries(
             Object.entries(Devs)
                 .filter((d) => d[1].id !== 0n)
-                .map(([_, v]) => [v.id, v] as const)
-        )
+                .map(([_, v]) => [v.id, v] as const),
+        ),
     ))() as Record<string, Dev>;
