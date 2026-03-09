@@ -101,12 +101,13 @@ interface Modals {
     }>;
 }
 
-export const Modals: Modals = mapMangledModuleLazy(':"thin")', {
+// TODO: move to new modal api
+export const Modals: Modals = mapMangledModuleLazy(".MODAL_ROOT_LEGACY,", {
     ModalRoot: filters.componentByCode('.MODAL,"aria-labelledby":'),
     ModalHeader: filters.componentByCode(",id:"),
-    ModalContent: filters.componentByCode(".content,"),
-    ModalFooter: filters.componentByCode(".footer,"),
-    ModalCloseButton: filters.componentByCode(".close]:")
+    ModalContent: filters.componentByCode("scrollbarType:"),
+    ModalFooter: filters.componentByCode(".HORIZONTAL_REVERSE,"),
+    ModalCloseButton: filters.componentByCode(".withCircleBackground")
 });
 
 export const ModalRoot = LazyComponent(() => Modals.ModalRoot);
@@ -140,7 +141,7 @@ export type MediaModalProps = {
     shouldHideMediaOptions?: boolean;
 };
 
-// modal key: "Media Viewer Modal"
+// Modal key: "Media Viewer Modal"
 export const openMediaModal: (props: MediaModalProps) => void = findByCodeLazy("hasMediaOptions", "shouldHideMediaOptions");
 
 interface ModalAPI {

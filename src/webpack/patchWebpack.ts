@@ -8,12 +8,12 @@ import { Settings } from "@api/Settings";
 import { makeLazy } from "@utils/lazy";
 import { Logger } from "@utils/Logger";
 import { interpolateIfDefined } from "@utils/misc";
-import { canonicalizeReplacement } from "@utils/patches";
 import { Patch, PatchReplacement } from "@utils/types";
+import { WebpackRequire } from "@vencord/discord-types/webpack";
 
 import { traceFunctionWithResults } from "../debug/Tracer";
+import { AnyModuleFactory, AnyWebpackRequire, MaybePatchedModuleFactory, PatchedModuleFactory } from "./types";
 import { _blacklistBadModules, _initWebpack, factoryListeners, findModuleFactory, moduleListeners, waitForSubscriptions, wreq } from "./webpack";
-import { AnyModuleFactory, AnyWebpackRequire, MaybePatchedModuleFactory, PatchedModuleFactory, WebpackRequire } from "./wreq.d";
 
 export const patches = [] as Patch[];
 
@@ -28,7 +28,7 @@ export const patchTimings = [] as Array<[plugin: string, moduleId: PropertyKey, 
 export const getBuildNumber = makeLazy(() => {
     try {
         function matchBuildNumber(factoryStr: string) {
-            const buildNumberMatch = factoryStr.match(/.concat\("(\d+?)"\)/);
+            const buildNumberMatch = factoryStr.match(/"Trying to open a changelog for an invalid build number (\d+?)"\)/);
             if (buildNumberMatch == null) {
                 return -1;
             }
@@ -36,13 +36,15 @@ export const getBuildNumber = makeLazy(() => {
             return Number(buildNumberMatch[1]);
         }
 
-        const hardcodedFactoryStr = String(wreq.m[128014]);
+        const hardcodedFactoryStr = String(wreq.m[446023]);
         if (hardcodedFactoryStr.includes("Trying to open a changelog for an invalid build number")) {
             const hardcodedBuildNumber = matchBuildNumber(hardcodedFactoryStr);
 
             if (hardcodedBuildNumber !== -1) {
                 return hardcodedBuildNumber;
             }
+        } else if (IS_DEV || IS_REPORTER) {
+            logger.error("Hardcoded build number module id is invalid");
         }
 
         const moduleFactory = findModuleFactory("Trying to open a changelog for an invalid build number");
@@ -60,7 +62,7 @@ export function getFactoryPatchedBy(moduleId: PropertyKey, webpackRequire = wreq
     return webpackRequire.m[moduleId]?.[SYM_PATCHED_BY];
 }
 
-const logger = new Logger("WebpackInterceptor", "#8caaee");
+const logger = new Logger("WebpackPatcher", "#8caaee");
 
 /** Whether we tried to fallback to the WebpackRequire of the factory, or disabled patches */
 let wreqFallbackApplied = false;
@@ -106,6 +108,13 @@ define(Function.prototype, "m", {
 
         const fileName = stack.match(/\/assets\/(.+?\.js)/)?.[1];
 
+        // Currently, sentry and libdiscore Webpack instances are not meant to be patched.
+        // As an extra measure, take advatange of the fact their files include the names and return early if it's one of them.
+        // Later down we also include other measures to avoid patching them.
+        if (["sentry", "libdiscore"].some(name => fileName?.toLowerCase()?.includes(name))) {
+            return;
+        }
+
         // Define a setter for the bundlePath property of WebpackRequire. Only Webpack instances which include chunk loading functionality,
         // like the main Discord Webpack, have this property.
         // So if the setter is called with the Discord bundlePath, this means we should patch this instance and initialize the internal references to WebpackRequire.
@@ -116,7 +125,10 @@ define(Function.prototype, "m", {
                 define(this, "p", { value: bundlePath });
                 clearTimeout(bundlePathTimeout);
 
-                if (bundlePath !== "/assets/") {
+                // libdiscore init Webpack instance always returns a constant string for the js filename of a chunk.
+                // In that case, avoid patching this instance,
+                // as it runs before the main Webpack instance and will make the WebpackRequire fallback not work properly, or init an wrongful main WebpackRequire.
+                if (bundlePath !== "/assets/" || /(?:=>|{return)"[^"]/.exec(String(this.u))) {
                     return;
                 }
 
@@ -129,9 +141,9 @@ define(Function.prototype, "m", {
             }
         });
 
-        // In the past, the sentry Webpack instance which we also wanted to patch used to rely on chunks being loaded before initting sentry.
+        // In the past, the sentry Webpack instance which we also wanted to patch used to rely on chunks being loaded before initing sentry.
         // This Webpack instance did not include actual chunk loading, and only awaited for them to be loaded, which means it did not include the bundlePath property.
-        // To keep backwards compability, in case this is ever the case again, and keep patching this type of instance, we explicity patch instances which include wreq.O and not wreq.p.
+        // To keep backwards compability, if this is ever the case again, and keep patching this type of instance, we explicity patch instances which include wreq.O and not wreq.p.
         // Since we cannot check what is the bundlePath of the instance to filter for the Discord bundlePath, we only patch it if wreq.p is not included,
         // which means the instance relies on another instance which does chunk loading, and that makes it very likely to only target Discord Webpack instances like the old sentry.
 
@@ -436,22 +448,41 @@ function runFactoryWithWrap(patchedFactory: PatchedModuleFactory, thisArg: unkno
                 callback(exports, module.id);
                 continue;
             }
+        } catch (err) {
+            logger.error(
+                "Error while filtering or firing callback for Webpack waitFor subscription:\n", err,
+                "\n\nModule exports:", exports,
+                "\n\nFilter:", filter,
+                "\n\nCallback:", callback
+            );
+        }
 
-            if (typeof exports !== "object") {
-                continue;
-            }
+        if (typeof exports !== "object") {
+            continue;
+        }
 
-            for (const exportKey in exports) {
-                const exportValue = exports[exportKey];
+        for (const exportKey in exports) {
+            try {
+                // Some exports might have not been initialized yet due to circular imports, so try catch it.
+                try {
+                    var exportValue = exports[exportKey];
+                } catch {
+                    continue;
+                }
 
                 if (exportValue != null && filter(exportValue)) {
                     waitForSubscriptions.delete(filter);
                     callback(exportValue, module.id);
                     break;
                 }
+            } catch (err) {
+                logger.error(
+                    "Error while filtering or firing callback for Webpack waitFor subscription:\n", err,
+                    "\n\nExport value:", exports,
+                    "\n\nFilter:", filter,
+                    "\n\nCallback:", callback
+                );
             }
-        } catch (err) {
-            logger.error("Error while firing callback for Webpack waitFor subscription:\n", err, filter, callback);
         }
     }
 
@@ -466,8 +497,11 @@ function runFactoryWithWrap(patchedFactory: PatchedModuleFactory, thisArg: unkno
  * @returns The patched module factory
  */
 function patchFactory(moduleId: PropertyKey, originalFactory: AnyModuleFactory): PatchedModuleFactory {
+    const originalFactoryCode = String(originalFactory);
+    const isArrowFunction = originalFactoryCode.startsWith("(");
+
     // 0, prefix to turn it into an expression: 0,function(){} would be invalid syntax without the 0,
-    let code: string = "0," + String(originalFactory);
+    let code = "0," + (!isArrowFunction ? "function" : "") + originalFactoryCode.slice(originalFactoryCode.indexOf("("));
     let patchedSource = code;
     let patchedFactory = originalFactory;
 
@@ -508,7 +542,7 @@ function patchFactory(moduleId: PropertyKey, originalFactory: AnyModuleFactory):
         const previousFactory = originalFactory;
         let markedAsPatched = false;
 
-        // We change all patch.replacement to array in plugins/index
+        // We change all patch.replacement to array in PluginManager
         for (const replacement of patch.replacement as PatchReplacement[]) {
             if (
                 shouldCheckBuildNumber &&
@@ -516,11 +550,6 @@ function patchFactory(moduleId: PropertyKey, originalFactory: AnyModuleFactory):
                 (replacement.toBuild != null && buildNumber > replacement.toBuild)
             ) {
                 continue;
-            }
-
-            // TODO: remove once Vesktop has been updated to use addPatch
-            if (patch.plugin === "Vesktop") {
-                canonicalizeReplacement(replacement, "VCDP");
             }
 
             const lastCode = code;
@@ -562,7 +591,7 @@ function patchFactory(moduleId: PropertyKey, originalFactory: AnyModuleFactory):
                 }
 
                 code = newCode;
-                patchedSource = `// Webpack Module ${String(moduleId)} - Patched by ${pluginsList.join(", ")}\n${newCode}\n//# sourceURL=WebpackModule${String(moduleId)}`;
+                patchedSource = `// Webpack Module ${String(moduleId)} - Patched by ${pluginsList.join(", ")}\n${code}\n//# sourceURL=file:///WebpackModule${String(moduleId)}`;
                 patchedFactory = (0, eval)(patchedSource);
 
                 if (!patchedBy.has(patch.plugin)) {
@@ -570,10 +599,14 @@ function patchFactory(moduleId: PropertyKey, originalFactory: AnyModuleFactory):
                     markedAsPatched = true;
                 }
             } catch (err) {
-                logger.error(`Patch by ${patch.plugin} errored (Module id is ${String(moduleId)}): ${replacement.match}\n`, err);
+                // FIXME: Maybe fix this properly
+                const shouldSuppressError = patch.plugin === "ContextMenuAPI" && err instanceof SyntaxError && err.message.includes("arguments");
+                if (!shouldSuppressError) {
+                    logger.error(`Patch by ${patch.plugin} errored (Module id is ${String(moduleId)}): ${replacement.match}\n`, err);
 
-                if (IS_DEV) {
-                    diffErroredPatch(code, lastCode, lastCode.match(replacement.match)!);
+                    if (IS_DEV) {
+                        diffErroredPatch(code, lastCode, lastCode.match(replacement.match)!);
+                    }
                 }
 
                 if (markedAsPatched) {

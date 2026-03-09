@@ -44,14 +44,7 @@ export default definePlugin({
             replacement: [
                 {
                     // Add next to username (compact mode)
-                    // FIXME(Bundler spread transform related): Remove old compatiblity once enough time has passed, if they don't revert
-                    match: /className:\i\(\)\(\i\.className(?:,\i\.clickable)?,\i\)}\),(?=\i)/g,
-                    replace: "$&$self.CompactPronounsChatComponentWrapper(arguments[0]),",
-                    noWarn: true
-                },
-                {
-                    // Add next to username (compact mode)
-                    match: /className:\i\(\)\(\i\.className(?:,\i\.clickable)?,\i\)}\)\),(?=\i)/g,
+                    match: /className:\i\(\)\(\i\.className(?:,\i\.\i)?,\i\)\}\)(?:\))?,(?=\i)/g,
                     replace: "$&$self.CompactPronounsChatComponentWrapper(arguments[0]),",
                 },
             ]

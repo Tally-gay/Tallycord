@@ -17,15 +17,14 @@
 */
 
 import { definePluginSettings } from "@api/Settings";
-import { makeRange } from "@components/PluginSettings/components";
 import { Devs } from "@utils/constants";
-import definePlugin, { OptionType } from "@utils/types";
+import definePlugin, { makeRange, OptionType } from "@utils/types";
 
 const settings = definePluginSettings({
     multiplier: {
         description: "Volume Multiplier",
         type: OptionType.SLIDER,
-        markers: makeRange(1, 5, 1),
+        markers: makeRange(1, 5, 0.5),
         default: 2,
         stickToMarkers: true,
     }
@@ -56,16 +55,21 @@ export default definePlugin({
 
     patches: [
         // Change the max volume for sliders to allow for values above 200
-        ...[
-            "#{intl::USER_VOLUME}",
-            "currentVolume:"
-        ].map(find => ({
-            find,
+        {
+            find: "#{intl::USER_VOLUME}",
             replacement: {
-                match: /(?<=maxValue:)\i\.\i\?(\d+?):(\d+?)(?=,)/,
-                replace: (_, higherMaxVolume, minorMaxVolume) => `${higherMaxVolume}*$self.settings.store.multiplier`
+                match: /(?<=maxValue:)\i\.isPlatformEmbedded\?(\i\.\i):\i\.\i(?=,)/,
+                replace: (_, higherMaxVolume) => `${higherMaxVolume}*$self.settings.store.multiplier`
             }
-        })),
+        },
+        // Change the max volume for sliders to allow for values above 200
+        {
+            find: "currentVolume:",
+            replacement: {
+                match: /(?<=maxValue:)\i\.\i\?(\d+?):\d+?(?=,)/,
+                replace: (_, higherMaxVolume) => `${higherMaxVolume}*$self.settings.store.multiplier`
+            }
+        },
         // Patches needed for web/vesktop
         {
             find: "streamSourceNode",
