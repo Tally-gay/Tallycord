@@ -26,6 +26,8 @@ import { RendererSettings } from "./settings";
 import { IS_VANILLA, THEMES_DIR } from "./utils/constants";
 import { installExt } from "./utils/extensions";
 
+console.log("IS_VESKTOP", IS_VESKTOP);
+
 if (IS_VESKTOP || !IS_VANILLA) {
     app.whenReady().then(() => {
         protocol.handle("vencord", ({ url: unsafeUrl }) => {
