@@ -29,7 +29,7 @@ function generateMrrpString(min: number, max: number, isUpperCase: boolean = fal
 
 export default definePlugin({
     name: "Auto Mrrp",
-    description: "Uwuifies your messages on send!",
+    description: "lets u mrow :3",
     authors: [Devs.tally],
     dependencies: ["MessageAccessoriesAPI", "MessagePopoverAPI", "MessageEventsAPI", "ChatInputButtonAPI"],
 
