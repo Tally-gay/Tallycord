@@ -61,7 +61,7 @@ declare global {
      */
     export var DiscordNative: any;
     export var Vesktop: any;
-    export var Equibop: any;
+    export var Tallytop: any;
     export var VesktopNative: any;
     export var unsafeWindow: any;
 

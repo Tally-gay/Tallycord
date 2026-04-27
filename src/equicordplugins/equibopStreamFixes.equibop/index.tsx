@@ -87,8 +87,8 @@ const settings = definePluginSettings({
 });
 
 export default definePlugin({
-    name: "EquibopStreamFixes",
-    description: "Tries to fix stream quality on Equibop by patching Discord's encoder and quality restrictions.",
+    name: "TallytopStreamFixes",
+    description: "Tries to fix stream quality on Tallytop by patching Discord's encoder and quality restrictions.",
     tags: ["Voice"],
     authors: [EquicordDevs.creations],
     settings,
@@ -189,7 +189,7 @@ export default definePlugin({
     getStreamConfig() {
         let quality: { frameRate?: string; resolution?: string; } | undefined;
         try {
-            const state = JSON.parse(localStorage.getItem("EquibopState") ?? "{}");
+            const state = JSON.parse(localStorage.getItem("TallytopState") ?? "{}");
             quality = state.screenshareQuality;
         } catch { }
         const framerate = Number(quality?.frameRate ?? 30);

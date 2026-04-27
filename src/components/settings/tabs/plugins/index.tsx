@@ -108,12 +108,12 @@ const enum SearchStatus {
     API_PLUGINS
 }
 
-export const ExcludedReasons: Record<"web" | "discordDesktop" | "vesktop" | "equibop" | "desktop" | "dev", string> = {
-    desktop: "Discord Desktop app or Vesktop/Equibop",
+export const ExcludedReasons: Record<"web" | "discordDesktop" | "vesktop" | "tallytop" | "desktop" | "dev", string> = {
+    desktop: "Discord Desktop app or Vesktop/Tallytop",
     discordDesktop: "Discord Desktop app",
-    vesktop: "Vesktop/Equibop apps",
-    equibop: "Vesktop/Equibop apps",
-    web: "Vesktop/Equibop apps & Discord web",
+    vesktop: "Vesktop/Tallytop apps",
+    tallytop: "Vesktop/Tallytop apps",
+    web: "Vesktop/Tallytop apps & Discord web",
     dev: "Developer version of Equicord"
 };
 

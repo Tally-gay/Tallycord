@@ -98,17 +98,17 @@ export function detectClient(): clientData {
     };
 
     if (IS_EQUIBOP) {
-        const equibopGitHash = tryOrElse(() => VesktopNative.app.getGitHash?.(), null);
+        const tallytopGitHash = tryOrElse(() => VesktopNative.app.getGitHash?.(), null);
         const spoofInfo = tryOrElse(() => VesktopNative.app.getPlatformSpoofInfo?.(), null);
         const isDevBuild = tryOrElse(() => VesktopNative.app.isDevBuild?.(), false);
-        const shortHash = equibopGitHash?.slice(0, 7);
+        const shortHash = tallytopGitHash?.slice(0, 7);
         return {
-            name: "Equibop",
+            name: "Tallytop",
             version: VesktopNative.app.getVersion(),
             spoofed: spoofInfo?.spoofed ? `${platformName()} (spoofed from ${spoofInfo.originalPlatform})` : null,
             dev: isDevBuild,
             shortHash: shortHash,
-            hash: equibopGitHash,
+            hash: tallytopGitHash,
         };
     }
 
@@ -136,7 +136,7 @@ async function generateDebugInfoMessage() {
     let clientString = `${clientInfo.name}`;
     clientString += `${clientInfo.version ? ` v${clientInfo.version}` : ""}`;
     clientString += `${clientInfo.info ? ` • ${clientInfo.info}` : ""}`;
-    clientString += `${clientInfo.shortHash ? ` • [${clientInfo.shortHash}](<https://github.com/Equicord/Equibop/commit/${clientInfo.hash}>)` : ""}`;
+    clientString += `${clientInfo.shortHash ? ` • [${clientInfo.shortHash}](<https://github.com/Equicord/Tallytop/commit/${clientInfo.hash}>)` : ""}`;
 
     const spoofInfo = IS_EQUIBOP ? tryOrElse(() => VesktopNative.app.getPlatformSpoofInfo?.(), null) : null;
     const platformDisplay = spoofInfo?.spoofed
@@ -171,7 +171,7 @@ async function generateDebugInfoMessage() {
         "Activity Sharing Disabled": tryOrElse(() => !ShowCurrentGame.getSetting(), false),
         "Link Embeds Disabled": tryOrElse(() => !ShowEmbeds.getSetting(), false),
         "Equicord DevBuild": !IS_STANDALONE,
-        "Equibop DevBuild": IS_EQUIBOP && tryOrElse(() => VesktopNative.app.isDevBuild?.(), false),
+        "Tallytop DevBuild": IS_EQUIBOP && tryOrElse(() => VesktopNative.app.isDevBuild?.(), false),
         "Platform Spoofed": spoofInfo?.spoofed ?? false,
         "Has UserPlugins": Object.values(PluginMeta).some(m => m.userPlugin),
         ">2 Weeks Outdated": BUILD_TIMESTAMP < Date.now() - 12096e5,

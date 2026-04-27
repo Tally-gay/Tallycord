@@ -23,7 +23,7 @@ declare module "~plugins" {
         folderName: string;
         userPlugin: boolean;
     }>;
-    export const ExcludedPlugins: Record<string, "web" | "discordDesktop" | "vesktop" | "equibop" | "desktop" | "dev">;
+    export const ExcludedPlugins: Record<string, "web" | "discordDesktop" | "vesktop" | "tallytop" | "desktop" | "dev">;
 }
 
 declare module "~git-hash" {
