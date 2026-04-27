@@ -30,7 +30,7 @@ import { ContextMenuApi, Menu, Toasts, UserStore } from "@webpack/common";
 
 import Plugins, { PluginMeta } from "~plugins";
 
-import { EquicordDonorModal, EquicordTranslatorModal, VencordDonorModal } from "./modals";
+import { EquicordDonorModal, EquicordTranslatorModal, TallycordBadgeModal, VencordDonorModal } from "./modals";
 
 const CONTRIBUTOR_BADGE = "https://cdn.discordapp.com/emojis/1092089799109775453.png?size=64";
 const EQUICORD_CONTRIBUTOR_BADGE = "https://equicord.org/assets/favicon.png";
@@ -84,6 +84,38 @@ const UserPluginContributorBadge: ProfileBadge = {
 
 let DonorBadges = {} as Record<string, Array<Record<"tooltip" | "badge", string>>>;
 let EquicordDonorBadges = {} as Record<string, Array<Record<"tooltip" | "badge", string>>>;
+let TallycordSpecialBadges: Record<string, Array<Record<"tooltip" | "badge", string>>> = {
+    // soph
+    "708860435482279977": [
+        {
+            badge: "https://cdn.discordapp.com/emojis/1496993397817479368.webp",
+            tooltip: "<3"
+        }, {
+            badge: "https://cdn.discordapp.com/emojis/1496992538756907058.webp",
+            tooltip: "1 DR1NK GLTRR GLU3"
+        }, {
+            badge: "https://cdn.discordapp.com/emojis/1496992871885312020.webp?animated=true",
+            tooltip: "GLITTER"
+        }],
+    // rayne
+    "1336737164691505246": [
+        {
+            badge: "https://cdn.discordapp.com/emojis/1496993395938299975.webp",
+            tooltip: "<3"
+        },
+        {
+            badge: "https://cdn.discordapp.com/emojis/1495883188969406689.webp",
+            tooltip: "My darling, my companion"
+        },
+        { badge: "https://cdn.discordapp.com/emojis/1496984821501657108.webp?animated=true", tooltip: "paiging it" }, { badge: "https://em-content.zobj.net/source/twitter/450/cloud-with-rain_1f327-fe0f.png", tooltip: "rainy" }
+    ],
+    // yan
+    "1187582576580374631": [
+        { badge: "https://cdn.discordapp.com/emojis/1496993351294128308.webp", tooltip: "<3" },
+        { badge: "https://cdn.discordapp.com/emojis/1496997756135411752.webp", tooltip: "seesay" },
+        { badge: "https://em-content.zobj.net/source/twitter/31/snail_1f40c.png", tooltip: "snail snail snail" }
+    ],
+};
 
 async function loadBadges(url: string, noCache = false) {
     const init = {} as RequestInit;
@@ -259,6 +291,26 @@ export default definePlugin({
             },
             onClick() {
                 return badge.tooltip === "Equicord Translator" ? EquicordTranslatorModal() : EquicordDonorModal();
+            },
+        } satisfies ProfileBadge));
+    }, getTallycordSpecialBadges(userId: string) {
+        return TallycordSpecialBadges[userId]?.map((badge, idx) => ({
+            id: `tallycord_badge_${idx}`,
+
+            iconSrc: badge.badge,
+            description: badge.tooltip,
+            position: BadgePosition.START,
+            props: {
+                style: {
+                    borderRadius: "50%",
+                    transform: "scale(0.9)" // The image is a bit too big compared to default badges
+                }
+            },
+            onContextMenu(event, badge) {
+                ContextMenuApi.openContextMenu(event, () => <BadgeContextMenu badge={{ ...badge, id: `tallycord_badge_${idx}` }} />);
+            },
+            onClick() {
+                return TallycordBadgeModal(badge);
             },
         } satisfies ProfileBadge));
     }

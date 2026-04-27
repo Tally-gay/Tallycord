@@ -166,3 +166,51 @@ export function EquicordTranslatorModal() {
         </ErrorBoundary>
     ));
 }
+
+export function TallycordBadgeModal(badge: Record<"tooltip" | "badge", string>) {
+    const modalKey = openModal(props => (
+        <ErrorBoundary noop onError={() => {
+            closeModal(modalKey);
+        }}>
+            <ModalRoot {...props}>
+                <ModalHeader>
+                    <HeadingPrimary
+                        style={{
+                            width: "100%",
+                            textAlign: "center",
+                            margin: 0
+                        }}
+                    >
+                        <Flex justifyContent="center" alignItems="center" gap="0.5em">
+                            <Heart />
+                            Tallycord Special
+                        </Flex>
+                    </HeadingPrimary>
+                </ModalHeader>
+                <ModalContent>
+                    <Flex flexDirection="column" gap="0.5em" justifyContent="center" alignItems="center">
+                        <img
+                            role="presentation"
+                            src={badge.badge}
+                            alt=""
+                            style={{ margin: "auto", width: "12rem", height: "12rem" }}
+                        />
+                        <Paragraph>
+                            {badge.tooltip}
+                        </Paragraph>
+                    </Flex>
+                    <div style={{ padding: "1em" }}>
+                        <Paragraph>
+                            This Badge is a special thing for ppl i (tally) reeaalllyy care about :3
+                        </Paragraph>
+                    </div>
+                </ModalContent>
+                {/* <ModalFooter>
+                    <Flex justifyContent="center" style={{ width: "100%" }}>
+                        <DonateButton />
+                    </Flex>
+                </ModalFooter> */}
+            </ModalRoot>
+        </ErrorBoundary>
+    ));
+}
