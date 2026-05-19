@@ -5,9 +5,8 @@
  */
 
 import { BaseText } from "@components/BaseText";
-import { ChannelTabsProps, closeTab, ensureUnreadFallbackCountsLoaded, getNotificationDotState, getUnreadFallbackCounts, isTabSelected, moveDraggedTabs, moveToTab, openedTabs, settings, updateUnreadFallbackCounts } from "@plugins/channelTabs/util";
-import { ActivityIcon, CircleQuestionIcon, DiscoveryIcon, EnvelopeIcon, FriendsIcon, ICYMIIcon, NitroIcon, QuestIcon, ShopIcon } from "@plugins/channelTabs/util/icons";
-import { activeQuestIntervals } from "@equicordplugins/questify"; // sorry murphy!
+import { ChannelTabsProps, closeTab, ensureUnreadFallbackCountsLoaded, getNotificationDotState, getUnreadFallbackCounts, isTabSelected, moveDraggedTabs, moveToTab, openedTabs, settings, updateUnreadFallbackCounts } from "@equicordplugins/channelTabs/util";
+import { ActivityIcon, CircleQuestionIcon, DiscoveryIcon, EnvelopeIcon, FriendsIcon, ICYMIIcon, NitroIcon, QuestIcon, ShopIcon } from "@equicordplugins/channelTabs/util/icons";
 import { classNameFactory } from "@utils/css";
 import { getGuildAcronym, getIntlMessage, getUniqueUsername } from "@utils/discord";
 import { classes } from "@utils/misc";
@@ -528,7 +527,7 @@ export default function ChannelTab(props: ChannelTabsProps & { index: number; })
     drag(drop(ref));
 
     // check if quests running (questify momentLet)
-    const hasActiveQuests = activeQuestIntervals.size > 0;
+    const hasActiveQuests = false;
     return <div
         className={cl("tab", {
             "tab-compact": compact,
