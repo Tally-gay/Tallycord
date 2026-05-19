@@ -9,27 +9,20 @@ on:
 
 env:
     FORCE_COLOR: true
-    GITHUB_TOKEN: ${{ secrets.ETOKEN }}
-    GH_TOKEN: ${{ github.token }}
-    REPO: Equicord/Equibored
-    USERNAME: GitHub-Actions
-
-permissions:
-    contents: write
 
 jobs:
-    build-and-release:
+    release-and-build:
         runs-on: ubuntu-latest
-
         steps:
-            - uses: actions/checkout@v4
+            - name: Check out the code
+              uses: actions/checkout@v4
 
             - uses: pnpm/action-setup@v3
 
-            - name: Use Node.js 24
+            - name: Use Node.js 20
               uses: actions/setup-node@v4
               with:
-                  node-version: 24
+                  node-version: 20
                   cache: "pnpm"
 
             - name: Install dependencies
@@ -39,26 +32,7 @@ jobs:
               run: pnpm buildWebStandalone
 
             - name: Build
-              run: pnpm buildStandalone
-
-            - name: Collect files to be released
-              run: |
-                  cd dist
-                  mkdir release
-
-                  cp browser/browser.* release
-                  cp Equicord.user.{js,js.LEGAL.txt} release
-                  cp *.{json,zip,asar} release
-
-                  cp desktop/* release
-                  for file in tallytop/*; do
-                    filename=$(basename "$file")
-                    cp "$file" "release/tallytop${filename^}"
-                  done
-
-                  find release -size 0 -delete
-                  rm -f release/package.json
-                  rm -f release/*.map
+              run: pnpm build --standalone
 
             - name: Determine tag name
               id: get_tag
@@ -66,20 +40,30 @@ jobs:
                   if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
                     echo "tag_name=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
                   else
-                    echo "tag_name=latest" >> $GITHUB_OUTPUT
+                    echo "tag_name=v${GITHUB_SHA}" >> $GITHUB_OUTPUT
                   fi
 
             - name: Create release if not exists
               run: |
                   TAG_NAME=${{ steps.get_tag.outputs.tag_name }}
-
                   if ! gh release view "$TAG_NAME" > /dev/null 2>&1; then
-                    gh release create "$TAG_NAME" \
-                      --title "Release $TAG_NAME" \
-                      --notes "Automated release for commit ${{ github.sha }}"
+                  gh release create "$TAG_NAME" --title "Release $TAG_NAME" --notes "Automatically generated release for commit ${{ github.sha }}."
                   fi
+              env:
+                  GH_TOKEN: ${{ github.token }}
 
             - name: Upload files to GitHub Release
+              shell: bash
+              env:
+                  GH_TOKEN: ${{ github.token }}
               run: |
                   TAG_NAME=${{ steps.get_tag.outputs.tag_name }}
-                  gh release upload "$TAG_NAME" dist/release/* --clobber
+                  echo "Uploading assets to release: $TAG_NAME"
+                  for file in dist/*; do
+                    if [ -f "$file" ]; then
+                      echo "Uploading $file..."
+                      gh release upload "$TAG_NAME" "$file" --clobber
+                    else
+                      echo "Skipping $file (not a file)"
+                    fi
+                  done
