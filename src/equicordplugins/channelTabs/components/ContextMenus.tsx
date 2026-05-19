@@ -7,7 +7,7 @@
 import { BaseText } from "@components/BaseText";
 import { Heading } from "@components/Heading";
 import { Paragraph } from "@components/Paragraph";
-import { bookmarkFolderColors, bookmarkPlaceholderName, closeOtherTabs, closeTab, closeTabsToTheLeft, closeTabsToTheRight, createTab, getDiscordFolderIcon, getDiscordFolderIconNames, hasClosedTabs, isBookmarkFolder, openedTabs, reopenClosedTab, settings, toggleCompactTab } from "@plugins/channelTabs/util";
+import { bookmarkFolderColors, bookmarkPlaceholderName, closeOtherTabs, closeTab, closeTabsToTheLeft, closeTabsToTheRight, createTab, getDiscordFolderIcon, getDiscordFolderIconNames, hasClosedTabs, isBookmarkFolder, openedTabs, reopenClosedTab, settings, toggleCompactTab } from "@equicordplugins/channelTabs/util";
 import { Bookmark, BookmarkFolder, Bookmarks, ChannelTabsProps, UseBookmarkMethods } from "@equicordplugins/channelTabs/util/types";
 import { getIntlMessage } from "@utils/discord";
 import { Margins } from "@utils/margins";
