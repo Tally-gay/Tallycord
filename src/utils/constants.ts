@@ -1327,6 +1327,17 @@ export const EquicordDevs = Object.freeze({
     },
 } satisfies Record<string, Dev>);
 
+export const TallycordDevs = Object.freeze({
+    tally: {
+        name: "tally",
+        id: 1014588310036951120n,
+    },
+    rayne: {
+        name: "rayne",
+        id: 1336737164691505246n,
+    }
+} satisfies Record<string, Dev>);
+
 // iife so #__PURE__ works correctly
 export const VencordDevsById = /* #__PURE__*/ (() =>
     Object.freeze(Object.fromEntries(
@@ -1343,3 +1354,13 @@ export const EquicordDevsById = /* #__PURE__*/ (() =>
             .map(([_, v]) => [v.id, v] as const)
     ))
 )() as Record<string, Dev>;
+
+
+export const TallycordDevsById = /* #__PURE__*/ (() =>
+    Object.freeze(
+        Object.fromEntries(
+            Object.entries(TallycordDevs)
+                .filter((d) => d[1].id !== 0n)
+                .map(([_, v]) => [v.id, v] as const),
+        ),
+    ))() as Record<string, Dev>;

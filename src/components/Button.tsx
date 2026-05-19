@@ -31,7 +31,9 @@ export type LinkButtonProps = ComponentPropsWithRef<"a"> & {
     variant?: ButtonVariant;
 };
 
-export function Button({ variant = "primary", size = "medium", children, className, ...restProps }: ButtonProps) {
+import { Button as WpButton } from "@webpack/common";
+
+function _Button({ variant = "primary", size = "medium", children, className, ...restProps }: ButtonProps) {
     return (
         <button data-mana-component="button" className={classes(btnCls("base", variant, size), className)} {...restProps}>
             {children}
@@ -39,6 +41,25 @@ export function Button({ variant = "primary", size = "medium", children, classNa
         </button>
     );
 }
+export let Button: typeof _Button & {
+    Colors: typeof WpButton.Colors; Looks: typeof WpButton.Looks; Sizes: {
+        SMALL: "small",
+        MEDIUM: "medium",
+        LARGE: "medium",
+        XLARGE: "medium",
+        NONE: "min",
+        MIN: "min";
+    };
+} = _Button as any;
+
+Button.Sizes = {
+    SMALL: "small",
+    MEDIUM: "medium",
+    LARGE: "medium",
+    XLARGE: "medium",
+    NONE: "min",
+    MIN: "min"
+};
 
 export function LinkButton({ variant = "link", size = "medium", className, children, ...restProps }: LinkButtonProps) {
     return (
@@ -118,5 +139,7 @@ ButtonCompat.Sizes = {
     NONE: "min",
     MIN: "min"
 } as const;
-
 // #endregion
+
+Button.Colors = ButtonCompat.Colors;
+Button.Looks = ButtonCompat.Looks;

@@ -12,7 +12,8 @@ import { classNameFactory } from "@utils/css";
 import { classes } from "@utils/misc";
 import { useForceUpdater } from "@utils/react";
 import { findComponentByCodeLazy, findStoreLazy } from "@webpack";
-import { Button, ContextMenuApi, FluxDispatcher, useCallback, useEffect, useRef, UserStore, useState, useStateFromStores } from "@webpack/common";
+import { ContextMenuApi, FluxDispatcher, useCallback, useEffect, useRef, UserStore, useState, useStateFromStores, } from "@webpack/common";
+import { Button } from "@components/Button";
 
 import channelTabs from "..";
 import BookmarkContainer, { HorizontalScroller } from "./BookmarkContainer";
@@ -33,7 +34,6 @@ export default function ChannelsTabsContainer(props: BasicChannelTabsProps) {
         showBookmarkBar,
         widerTabsAndBookmarks,
         tabWidthScale,
-        tabHeightScale,
         enableNumberKeySwitching,
         numberKeySwitchCount,
         enableCloseTabShortcut,
@@ -66,7 +66,6 @@ export default function ChannelsTabsContainer(props: BasicChannelTabsProps) {
         "showBookmarkBar",
         "widerTabsAndBookmarks",
         "tabWidthScale",
-        "tabHeightScale",
         "enableNumberKeySwitching",
         "numberKeySwitchCount",
         "enableCloseTabShortcut",
@@ -290,16 +289,6 @@ export default function ChannelsTabsContainer(props: BasicChannelTabsProps) {
 
     if (isFullscreen) return null;
 
-    const shouldFollowNewTabButton = newTabButtonBehavior && !tabsOverflow;
-    const newTabButton = (
-        <button
-            onClick={() => createTab(props, true)}
-            className={cl("button", "new-button", "hoverable")}
-        >
-            <PlusSmallIcon />
-        </button>
-    );
-
     return (
         <div
             className={classes(
@@ -324,7 +313,7 @@ export default function ChannelsTabsContainer(props: BasicChannelTabsProps) {
                 !compactAutoExpandOnHover && cl("no-compact-hover-expand")
             )}
             ref={ref}
-            style={{ "--tab-width-scale": tabWidthScale / 100, "--tab-height-scale": tabHeightScale / 100 } as React.CSSProperties}
+            style={{ "--tab-width-scale": tabWidthScale / 100 } as React.CSSProperties}
             onContextMenu={e => ContextMenuApi.openContextMenu(e, () => <BasicContextMenu />)}
         >
             {showBookmarkBar && <>
@@ -334,16 +323,20 @@ export default function ChannelsTabsContainer(props: BasicChannelTabsProps) {
             <div className={cl("tab-container")}>
                 <HorizontalScroller
                     customRef={node => { scrollerRef.current = node; }}
-                    className={cl("tab-scroller", shouldFollowNewTabButton && "tab-scroller-following")}
+                    className={cl("tab-scroller", newTabButtonBehavior && !tabsOverflow && "tab-scroller-following")}
                 >
                     {openedTabs.filter(tab => tab != null).map((tab, i) =>
                         <ChannelTab {...tab} index={i} key={tab.id} />
                     )}
                     {GhostTabs}
-                    {shouldFollowNewTabButton && newTabButton}
                 </HorizontalScroller>
 
-                {!shouldFollowNewTabButton && newTabButton}
+                <button
+                    onClick={() => createTab(props, true)}
+                    className={cl("button", "new-button", "hoverable")}
+                >
+                    <PlusSmallIcon />
+                </button>
             </div >
 
         </div>

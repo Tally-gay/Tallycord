@@ -5,7 +5,7 @@
  */
 
 import { BaseText } from "@components/BaseText";
-import { BasicChannelTabsProps, Bookmark, BookmarkFolder, BookmarkProps, getDiscordFolderIcon, isBookmarkFolder, isTabSelected, navigateToBookmark, openedTabs, settings, switchChannel, UseBookmarkMethods, useBookmarks } from "@equicordplugins/channelTabs/util";
+import { BasicChannelTabsProps, Bookmark, BookmarkFolder, BookmarkProps, getDiscordFolderIcon, isBookmarkFolder, isTabSelected, navigateToBookmark, openedTabs, settings, switchChannel, UseBookmarkMethods, useBookmarks } from "@plugins/channelTabs/util";
 import { CircleQuestionIcon, DiscoveryIcon, EnvelopeIcon, FriendsIcon, NitroIcon, QuestIcon, ShopIcon } from "@equicordplugins/channelTabs/util/icons";
 import { classNameFactory } from "@utils/css";
 import { getGuildAcronym, getIntlMessage } from "@utils/discord";
@@ -153,7 +153,7 @@ function BookmarkFolderOpenMenu(props: BookmarkProps) {
                                 }}>
                                 {b.name}
                             </span>
-                            {bookmarkNotificationDot && <NotificationDot channelIds={[b.channelId]} />}
+                            {bookmarkNotificationDot && <NotificationDot pingOverrides={true} channelIds={[b.channelId]} />}
                         </div>
                     }
                     icon={() => <BookmarkIcon bookmark={b} />}
@@ -371,7 +371,7 @@ function FolderBookmarkItem({ bookmark, bookmarks, folderIndex, bookmarkIndex, m
             <BaseText size="sm" className={cl("name-text")}>
                 {bookmark.name}
             </BaseText>
-            {bookmarkNotificationDot && <NotificationDot channelIds={[bookmark.channelId]} />}
+            {bookmarkNotificationDot && <NotificationDot channelIds={[bookmark.channelId]} pingOverrides={true} />}
         </div>
     );
 }
@@ -535,7 +535,7 @@ function Bookmark(props: BookmarkProps & { isExpanded?: boolean; onToggleFolder?
             <BaseText size="sm" className={cl("name-text")}>
                 {bookmark.name}
             </BaseText>
-            {bookmarkNotificationDot && <NotificationDot channelIds={isBookmarkFolder(bookmark)
+            {bookmarkNotificationDot && <NotificationDot pingOverrides={true} channelIds={isBookmarkFolder(bookmark)
                 ? bookmark.bookmarks.map(b => b.channelId)
                 : [bookmark.channelId]
             } />}

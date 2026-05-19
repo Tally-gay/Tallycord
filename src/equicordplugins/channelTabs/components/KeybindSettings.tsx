@@ -10,7 +10,8 @@ import { Heading } from "@components/Heading";
 import { Paragraph } from "@components/Paragraph";
 import { settings } from "@equicordplugins/channelTabs/util";
 import { IS_MAC } from "@utils/constants";
-import { Button, React, Text, useEffect, useRef, useState } from "@webpack/common";
+import { React, Text, useEffect, useRef, useState, } from "@webpack/common";
+import { Button } from "@components/Button";
 import { JSX } from "react";
 
 interface KeybindInputProps {

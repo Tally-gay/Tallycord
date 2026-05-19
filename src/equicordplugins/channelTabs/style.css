@@ -4,6 +4,8 @@
     --channeltabs-yellow: #f0b132;
     --channeltabs-green: #24934f;
     --channeltabs-black: #000;
+    --channeltabs-gray: #333;
+    --channeltabs-dark-gray: #222;
     --channeltabs-white: #fff;
     --channeltabs-orange: #e67e22;
     --channeltabs-pink: #ff73fa;
@@ -12,7 +14,7 @@
 .vc-channeltabs-icon {
     height: 1.5rem;
     width: 1.5rem;
-    border-radius: 50%;
+    border-radius: 8px;
 }
 
 .vc-channeltabs-guild-acronym-icon {
@@ -40,12 +42,14 @@
 
 .vc-channeltabs-tab-inner {
     border-radius: 12px;
-    padding: 0 28px 0 0;
+    padding: 0 0 0 0;
     display: flex;
     flex-direction: row;
     align-items: center;
     gap: 0.5rem;
-    transition: gap 0.15s ease, padding 0.2s ease-in-out;
+    transition:
+        gap 0.15s ease,
+        padding 0.2s ease-in-out;
 }
 
 .vc-channeltabs-tab-container,
@@ -54,6 +58,7 @@
     flex-flow: row nowrap;
     align-items: center;
     padding: 0 4px;
+    height: 30px;
 }
 
 .vc-channeltabs-bookmark-container {
@@ -66,12 +71,12 @@
     flex-direction: column-reverse;
     -webkit-app-region: no-drag;
     background-color: var(--background-primary);
-    box-shadow: inset 0 1px 0 var(--background-base-low);
+    /* box-shadow: inset 0 1px 0 var(--background-base-low); */
 }
 
 .vc-channeltabs-container-top {
     padding-left: 4px;
-    box-shadow: inset 0 -1px 0 var(--background-base-low);
+    /* box-shadow: inset 0 -1px 0 var(--background-base-low); */
     grid-area: notice;
     z-index: 102;
 }
@@ -153,8 +158,8 @@
 }
 
 .vc-channeltabs-bookmark-star-checked {
-    fill: var(--brand-experiment, var(--brand-500));
-    stroke: var(--brand-experiment, var(--brand-500));
+    fill: var(--brand-experiment, var(--background-brand));
+    stroke: var(--brand-experiment, var(--background-brand));
 }
 
 .vc-channeltabs-bookmark {
@@ -165,7 +170,11 @@
     border-radius: 4px;
     align-items: center;
     position: relative;
-    transition: transform 0.14s ease, border-color 0.14s ease, box-shadow 0.14s ease, background-color 0.14s ease;
+    transition:
+        transform 0.14s ease,
+        border-color 0.14s ease,
+        box-shadow 0.14s ease,
+        background-color 0.14s ease;
 }
 
 .vc-channeltabs-bookmark.vc-channeltabs-wider {
@@ -212,11 +221,11 @@
         border-color 0.15s ease,
         box-shadow 0.15s ease,
         opacity 0.15s ease;
-    min-height: calc(38px * var(--tab-height-scale, 1));
-    padding: calc(6px * var(--tab-height-scale, 1)) 8px;
+    padding: 3px 0.8px;
     position: relative;
     cursor: grab;
     flex-shrink: 0;
+    height: 24px;
 }
 
 .vc-channeltabs-tab:active {
@@ -232,7 +241,7 @@
     cursor: ew-resize;
     z-index: 10;
     opacity: 0;
-    background: var(--brand-500);
+    background: var(--background-brand);
     border-radius: 0 11px 11px 0;
     transition: opacity 0.2s ease;
 }
@@ -275,7 +284,8 @@
 }
 
 .vc-channeltabs-tab-compact:hover .vc-channeltabs-tab-inner,
-.vc-channeltabs-tab-compact.vc-channeltabs-tab-selected .vc-channeltabs-tab-inner {
+.vc-channeltabs-tab-compact.vc-channeltabs-tab-selected
+    .vc-channeltabs-tab-inner {
     padding-right: 28px;
 }
 
@@ -292,7 +302,8 @@
 }
 
 .vc-channeltabs-tab-compact:hover .vc-channeltabs-name-text,
-.vc-channeltabs-tab-compact.vc-channeltabs-tab-selected .vc-channeltabs-name-text {
+.vc-channeltabs-tab-compact.vc-channeltabs-tab-selected
+    .vc-channeltabs-name-text {
     max-width: 200px;
     opacity: 1;
     transform: translateX(0);
@@ -300,20 +311,22 @@
 
 .vc-channeltabs-tab-selected {
     transform: translateY(-1px);
-    background-color: var(--background-base-low);
-    border: 1px solid var(--brand-500);
-    border-bottom: 2px solid var(--brand-500);
+    /* background-color: var(--background-base-low); */
+    border: 1px solid var(--background-brand);
+    border-bottom: 2px solid var(--background-brand);
     box-shadow: 0 1px 3px rgb(0 0 0 / 20%);
 }
 
 /* stylelint-disable-next-line no-descending-specificity */
-.vc-channeltabs-dark-theme.vc-channeltabs-tab-selected .vc-channeltabs-name-text {
+.vc-channeltabs-dark-theme.vc-channeltabs-tab-selected
+    .vc-channeltabs-name-text {
     font-weight: 600;
     color: var(--white-500);
 }
 
 /* stylelint-disable-next-line no-descending-specificity */
-.vc-channeltabs-light-theme.vc-channeltabs-tab-selected .vc-channeltabs-name-text {
+.vc-channeltabs-light-theme.vc-channeltabs-tab-selected
+    .vc-channeltabs-name-text {
     font-weight: 600;
 }
 
@@ -341,7 +354,7 @@
 .vc-channeltabs-container [class*="numberBadge"] {
     background-color: var(--channeltabs-red) !important;
     color: var(--channeltabs-white);
-    border-radius: 50%;
+    /* border-radius: 50%; */
     min-width: 16px;
     height: 16px;
     font-size: 11px;
@@ -396,10 +409,14 @@
     overflow: hidden;
     transform: translateY(-50%) scaleX(0.92);
     transform-origin: right center;
-    transition: width 0.18s ease, opacity 0.15s ease, transform 0.18s ease;
+    transition:
+        width 0.18s ease,
+        opacity 0.15s ease,
+        transform 0.18s ease;
 }
 
-.vc-channeltabs-bookmark-search-shell-open .vc-channeltabs-bookmark-search-field {
+.vc-channeltabs-bookmark-search-shell-open
+    .vc-channeltabs-bookmark-search-field {
     width: 160px;
     opacity: 1;
     pointer-events: auto;
@@ -433,7 +450,7 @@
     padding: 4px;
     margin: 0 4px;
     border-radius: 4px;
-    background-color: var(--background-base-low);
+    height: 100%;
     transition: all 0.2s ease;
     flex-shrink: 0;
 }
@@ -446,7 +463,44 @@
 .vc-channeltabs-new-button:active {
     transform: scale(0.95);
 }
+.vc-channeltabs-extra-container {
+    gap: 4px;
+    position: absolute;
+    top: -4px;
+    left: -3px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
 
+.vc-channeltabs-merge-pills .vc-channeltabs-extra-container {
+    gap: 0px;
+    position: absolute;
+    top: -4px;
+    left: -3px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.vc-channeltabs-merge-pills .vc-channeltabs-extra-container > * {
+    border-radius: 0px;
+}
+
+.vc-channeltabs-typing-indicator-container {
+    /* position: absolute; */
+    /* bottom: 0; */
+    /* right: 0; */
+    background-color: var(--channeltabs-gray);
+    padding: 0 5px;
+    border-radius: 999px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
 /* stylelint-disable-next-line no-descending-specificity */
 .vc-channeltabs-new-button svg {
     transition: all 0.2s ease;
@@ -474,10 +528,12 @@
 .vc-channeltabs-close-button {
     height: 1rem;
     padding: 0;
-    margin: 0 0 0 4px;
+    margin: 0 4px 0 4px;
     border-radius: 50%;
     color: var(--text-muted);
-    transition: all 0.15s ease, transform 0.2s ease-in-out;
+    transition:
+        all 0.15s ease,
+        transform 0.2s ease-in-out;
 }
 
 .vc-channeltabs-close-button:hover {
@@ -520,7 +576,8 @@
 }
 
 .vc-channeltabs-tab-compact:hover .vc-channeltabs-close-button-compact,
-.vc-channeltabs-tab-compact.vc-channeltabs-tab-selected .vc-channeltabs-close-button-compact {
+.vc-channeltabs-tab-compact.vc-channeltabs-tab-selected
+    .vc-channeltabs-close-button-compact {
     opacity: 1;
     transform: translateX(0) scale(1);
 }
@@ -553,6 +610,7 @@
     min-width: 0;
     border-radius: 0.25rem;
     border: 1px solid var(--input-border-default, var(--input-border));
+    position: relative;
 }
 
 .vc-channeltabs-preview-tab-compact {
@@ -560,9 +618,12 @@
     min-width: unset;
 }
 
-.vc-channeltabs-preview-tab > :is(.vc-channeltabs-emoji-container,
-    .vc-channeltabs-typing-indicator,
-    [data-has-mention]) {
+.vc-channeltabs-preview-tab
+    > :is(
+        .vc-channeltabs-emoji-container,
+        .vc-channeltabs-typing-indicator,
+        [data-has-mention]
+    ) {
     display: none;
 }
 
@@ -587,46 +648,56 @@
 /* stylelint-disable-next-line no-descending-specificity */
 .vc-channeltabs-tab:has([data-has-mention="true"]) {
     animation: vc-channeltabs-mention-pulse 2s ease-in-out infinite;
-    box-shadow: 0 0 8px rgb(242 63 66 / 60%), 0 0 16px rgb(242 63 66 / 30%);
+    box-shadow:
+        0 0 2px rgb(242 63 66 / 60%),
+        0 0 3px rgb(242 63 66 / 30%);
 }
 
 @keyframes vc-channeltabs-mention-pulse {
-
     /* stylelint-disable-next-line rule-empty-line-before */
     0%,
     100% {
-        box-shadow: 0 0 8px rgb(242 63 66 / 60%), 0 0 16px rgb(242 63 66 / 30%);
+        box-shadow:
+            0 0 2px rgb(242 63 66 / 60%),
+            0 0 3px rgb(242 63 66 / 30%);
     }
 
     50% {
-        box-shadow: 0 0 12px rgb(242 63 66 / 80%), 0 0 24px rgb(242 63 66 / 50%);
+        box-shadow:
+            0 0 8px rgb(242 63 66 / 80%),
+            0 0 14px rgb(242 63 66 / 50%);
     }
 }
 
-/* Enhance glow for selected tabs with mentions */
+/* Enhance glow for selected tabs with mentions
 .vc-channeltabs-tab-selected:has([data-has-mention="true"]) {
     box-shadow:
         0 1px 3px rgb(0 0 0 / 20%),
         0 0 12px rgb(242 63 66 / 80%),
         0 0 24px rgb(242 63 66 / 50%);
-}
+} */
 
 /* Pink Nitro glow effect (easter egg) */
 .vc-channeltabs-tab-nitro {
     animation: vc-channeltabs-nitro-pulse 3s ease-in-out infinite;
-    box-shadow: 0 0 10px rgb(255 115 250 / 70%), 0 0 20px rgb(255 115 250 / 40%);
+    box-shadow:
+        0 0 10px rgb(255 115 250 / 70%),
+        0 0 20px rgb(255 115 250 / 40%);
 }
 
 @keyframes vc-channeltabs-nitro-pulse {
-
     /* stylelint-disable-next-line rule-empty-line-before */
     0%,
     100% {
-        box-shadow: 0 0 10px rgb(255 115 250 / 70%), 0 0 20px rgb(255 115 250 / 40%);
+        box-shadow:
+            0 0 10px rgb(255 115 250 / 70%),
+            0 0 20px rgb(255 115 250 / 40%);
     }
 
     50% {
-        box-shadow: 0 0 16px rgb(255 115 250 / 90%), 0 0 32px rgb(255 115 250 / 60%);
+        box-shadow:
+            0 0 16px rgb(255 115 250 / 90%),
+            0 0 32px rgb(255 115 250 / 60%);
     }
 }
 
@@ -649,7 +720,6 @@
 }
 
 @keyframes vc-channeltabs-nitro-icon-gradient {
-
     /* stylelint-disable-next-line rule-empty-line-before */
     0%,
     100% {
@@ -672,14 +742,16 @@
     position: absolute;
     inset: 0;
     border-radius: 11px;
-    background: linear-gradient(135deg,
-            transparent,
-            transparent 25%,
-            rgb(114 137 218) 40%,
-            rgb(88 101 242) 50%,
-            rgb(71 82 196) 60%,
-            transparent 75%,
-            transparent);
+    background: linear-gradient(
+        135deg,
+        transparent,
+        transparent 25%,
+        rgb(114 137 218) 40%,
+        rgb(88 101 242) 50%,
+        rgb(71 82 196) 60%,
+        transparent 75%,
+        transparent
+    );
     background-size: 300% 300%;
     animation: vc-channeltabs-quests-diagonal 5s linear infinite;
     opacity: 0.8;
@@ -697,7 +769,6 @@
 }
 
 @keyframes vc-channeltabs-quests-diagonal {
-
     /* stylelint-disable-next-line rule-empty-line-before */
     0%,
     40% {
@@ -763,8 +834,10 @@
 }
 
 /* Disable Quests active animations when setting is off */
-.vc-channeltabs-container.vc-channeltabs-no-quests-active-animation .vc-channeltabs-tab-quests-active::before,
-.vc-channeltabs-container.vc-channeltabs-no-quests-active-animation .vc-channeltabs-tab-quests-active::after {
+.vc-channeltabs-container.vc-channeltabs-no-quests-active-animation
+    .vc-channeltabs-tab-quests-active::before,
+.vc-channeltabs-container.vc-channeltabs-no-quests-active-animation
+    .vc-channeltabs-tab-quests-active::after {
     animation: none !important;
     opacity: 0 !important;
 }
@@ -847,8 +920,12 @@
 }
 
 /* Disable tab transitions when any tab is being dragged for smoother reordering */
-.vc-channeltabs-tab-container:has(.vc-channeltabs-tab-dragging) .vc-channeltabs-tab:not(.vc-channeltabs-tab-dragging) {
-    transition: transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.2s ease, box-shadow 0.2s ease;
+.vc-channeltabs-tab-container:has(.vc-channeltabs-tab-dragging)
+    .vc-channeltabs-tab:not(.vc-channeltabs-tab-dragging) {
+    transition:
+        transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+        opacity 0.2s ease,
+        box-shadow 0.2s ease;
 }
 
 .vc-channeltabs-tab-drop-target {
@@ -856,29 +933,28 @@
 }
 
 .vc-channeltabs-tab-drop-target::before {
-    content: '';
+    content: "";
     position: absolute;
     left: -4px;
     top: 0;
     bottom: 0;
     width: 3px;
-    background: var(--brand-500);
+    background: var(--background-brand);
     border-radius: 3px;
     animation: vc-channeltabs-drop-indicator 0.5s ease-in-out infinite;
 }
 
 @keyframes vc-channeltabs-drop-indicator {
-
     /* stylelint-disable-next-line rule-empty-line-before */
     0%,
     100% {
         opacity: 0.6;
-        box-shadow: 0 0 8px var(--brand-500);
+        box-shadow: 0 0 8px var(--background-brand);
     }
 
     50% {
         opacity: 1;
-        box-shadow: 0 0 12px var(--brand-500);
+        box-shadow: 0 0 12px var(--background-brand);
     }
 }
 
@@ -890,26 +966,31 @@
 /* stylelint-disable no-descending-specificity */
 
 /* Hover animation - disable if setting is off */
-.vc-channeltabs-container.vc-channeltabs-no-hover-animation .vc-channeltabs-tab:hover:not(.vc-channeltabs-tab-selected) {
+.vc-channeltabs-container.vc-channeltabs-no-hover-animation
+    .vc-channeltabs-tab:hover:not(.vc-channeltabs-tab-selected) {
     transform: none !important;
 }
 
 /* Selection animation - disable if setting is off */
-.vc-channeltabs-container.vc-channeltabs-no-selection-animation .vc-channeltabs-tab-selected {
+.vc-channeltabs-container.vc-channeltabs-no-selection-animation
+    .vc-channeltabs-tab-selected {
     transform: none !important;
 }
 
 /* Drag & drop animation - disable if setting is off */
-.vc-channeltabs-container.vc-channeltabs-no-drag-animation .vc-channeltabs-tab-dragging {
+.vc-channeltabs-container.vc-channeltabs-no-drag-animation
+    .vc-channeltabs-tab-dragging {
     opacity: 1 !important;
     transform: none !important;
 }
 
-.vc-channeltabs-container.vc-channeltabs-no-drag-animation .vc-channeltabs-tab-drop-target::before {
+.vc-channeltabs-container.vc-channeltabs-no-drag-animation
+    .vc-channeltabs-tab-drop-target::before {
     display: none !important;
 }
 
-.vc-channeltabs-container.vc-channeltabs-no-drag-animation .vc-channeltabs-tab-drop-target {
+.vc-channeltabs-container.vc-channeltabs-no-drag-animation
+    .vc-channeltabs-tab-drop-target {
     transform: none !important;
     background-color: transparent !important;
     border-color: var(--background-mod-muted) !important;
@@ -917,163 +998,218 @@
 }
 
 /* Enter/exit animation - disable if setting is off */
-.vc-channeltabs-container.vc-channeltabs-no-enter-exit-animation .vc-channeltabs-tab-entering {
+.vc-channeltabs-container.vc-channeltabs-no-enter-exit-animation
+    .vc-channeltabs-tab-entering {
     animation: none !important;
 }
 
 /* Also disable closing animation for instant disappear */
-.vc-channeltabs-container.vc-channeltabs-no-enter-exit-animation .vc-channeltabs-tab-closing {
+.vc-channeltabs-container.vc-channeltabs-no-enter-exit-animation
+    .vc-channeltabs-tab-closing {
     animation: none !important;
     opacity: 0 !important;
     display: none !important;
 }
 
-.vc-channeltabs-container.vc-channeltabs-no-enter-exit-animation .vc-channeltabs-tab {
-    transition: opacity 0.2s ease-out,
+.vc-channeltabs-container.vc-channeltabs-no-enter-exit-animation
+    .vc-channeltabs-tab {
+    transition:
+        opacity 0.2s ease-out,
         transform 0.2s ease-in-out,
         background-color 0.15s ease !important;
 }
 
 /* Icon pop animation - disable if setting is off */
-.vc-channeltabs-container.vc-channeltabs-no-icon-pop-animation .vc-channeltabs-tab-selected .vc-channeltabs-icon,
-.vc-channeltabs-container.vc-channeltabs-no-icon-pop-animation .vc-channeltabs-tab-selected .vc-channeltabs-guild-acronym-icon {
+.vc-channeltabs-container.vc-channeltabs-no-icon-pop-animation
+    .vc-channeltabs-tab-selected
+    .vc-channeltabs-icon,
+.vc-channeltabs-container.vc-channeltabs-no-icon-pop-animation
+    .vc-channeltabs-tab-selected
+    .vc-channeltabs-guild-acronym-icon {
     animation: none !important;
 }
 
 /* Selected tab border - disable if setting is off */
-.vc-channeltabs-container.vc-channeltabs-no-selected-border .vc-channeltabs-tab-selected {
+.vc-channeltabs-container.vc-channeltabs-no-selected-border
+    .vc-channeltabs-tab-selected {
     border: 1px solid var(--background-mod-muted) !important;
     border-bottom: 1px solid var(--background-mod-muted) !important;
 }
 
 /* Selected tab background - disable if setting is off */
-.vc-channeltabs-container.vc-channeltabs-no-selected-background .vc-channeltabs-tab-selected {
+.vc-channeltabs-container.vc-channeltabs-no-selected-background
+    .vc-channeltabs-tab-selected {
     background-color: transparent !important;
 }
 
 /* Tab shadows - disable if setting is off */
 .vc-channeltabs-container.vc-channeltabs-no-tab-shadows .vc-channeltabs-tab,
-.vc-channeltabs-container.vc-channeltabs-no-tab-shadows .vc-channeltabs-tab-selected,
-.vc-channeltabs-container.vc-channeltabs-no-tab-shadows .vc-channeltabs-tab:hover {
+.vc-channeltabs-container.vc-channeltabs-no-tab-shadows
+    .vc-channeltabs-tab-selected,
+.vc-channeltabs-container.vc-channeltabs-no-tab-shadows
+    .vc-channeltabs-tab:hover {
     box-shadow: none !important;
 }
 
 /* Close button rotation - disable if setting is off */
-.vc-channeltabs-container.vc-channeltabs-no-close-rotation .vc-channeltabs-tab-selected .vc-channeltabs-close-button:hover {
+.vc-channeltabs-container.vc-channeltabs-no-close-rotation
+    .vc-channeltabs-tab-selected
+    .vc-channeltabs-close-button:hover {
     transform: none !important;
 }
 
-.vc-channeltabs-container.vc-channeltabs-no-close-rotation .vc-channeltabs-close-button:hover {
+.vc-channeltabs-container.vc-channeltabs-no-close-rotation
+    .vc-channeltabs-close-button:hover {
     transform: none !important;
 }
 
-.vc-channeltabs-container.vc-channeltabs-no-close-rotation .vc-channeltabs-tab-selected .vc-channeltabs-close-button:active {
+.vc-channeltabs-container.vc-channeltabs-no-close-rotation
+    .vc-channeltabs-tab-selected
+    .vc-channeltabs-close-button:active {
     transform: none !important;
 }
 
-.vc-channeltabs-container.vc-channeltabs-no-close-rotation .vc-channeltabs-close-button:active {
+.vc-channeltabs-container.vc-channeltabs-no-close-rotation
+    .vc-channeltabs-close-button:active {
     transform: none !important;
 }
 
 /* Plus button animation - disable if setting is off */
-.vc-channeltabs-container.vc-channeltabs-no-plus-animation .vc-channeltabs-new-button:hover {
+.vc-channeltabs-container.vc-channeltabs-no-plus-animation
+    .vc-channeltabs-new-button:hover {
     transform: none !important;
 }
 
-.vc-channeltabs-container.vc-channeltabs-no-plus-animation .vc-channeltabs-new-button:active {
+.vc-channeltabs-container.vc-channeltabs-no-plus-animation
+    .vc-channeltabs-new-button:active {
     transform: none !important;
 }
 
-.vc-channeltabs-container.vc-channeltabs-no-plus-animation .vc-channeltabs-new-button:hover svg {
+.vc-channeltabs-container.vc-channeltabs-no-plus-animation
+    .vc-channeltabs-new-button:hover
+    svg {
     animation: none !important;
 }
 
 /* Mention glow - disable if setting is off */
-.vc-channeltabs-container.vc-channeltabs-no-mention-glow .vc-channeltabs-tab:has([data-has-mention="true"]) {
+.vc-channeltabs-container.vc-channeltabs-no-mention-glow
+    .vc-channeltabs-tab:has([data-has-mention="true"]) {
     animation: none !important;
     box-shadow: 0 1px 3px rgb(0 0 0 / 20%) !important;
 }
 
-.vc-channeltabs-container.vc-channeltabs-no-mention-glow .vc-channeltabs-tab-selected:has([data-has-mention="true"]) {
+.vc-channeltabs-container.vc-channeltabs-no-mention-glow
+    .vc-channeltabs-tab-selected:has([data-has-mention="true"]) {
     box-shadow: 0 1px 3px rgb(0 0 0 / 20%) !important;
 }
 
 /* Compact mode expansion animation - disable if setting is off */
-.vc-channeltabs-container.vc-channeltabs-no-compact-animation .vc-channeltabs-tab-compact {
+.vc-channeltabs-container.vc-channeltabs-no-compact-animation
+    .vc-channeltabs-tab-compact {
     transition: none !important;
 }
 
-.vc-channeltabs-container.vc-channeltabs-no-compact-animation .vc-channeltabs-tab-compact .vc-channeltabs-name-text {
+.vc-channeltabs-container.vc-channeltabs-no-compact-animation
+    .vc-channeltabs-tab-compact
+    .vc-channeltabs-name-text {
     transition: none !important;
 }
 
-.vc-channeltabs-container.vc-channeltabs-no-compact-animation .vc-channeltabs-close-button-compact {
+.vc-channeltabs-container.vc-channeltabs-no-compact-animation
+    .vc-channeltabs-close-button-compact {
     transition: none !important;
 }
 
 /* Also disable tab-inner padding transition */
-.vc-channeltabs-container.vc-channeltabs-no-compact-animation .vc-channeltabs-tab-compact .vc-channeltabs-tab-inner {
+.vc-channeltabs-container.vc-channeltabs-no-compact-animation
+    .vc-channeltabs-tab-compact
+    .vc-channeltabs-tab-inner {
     transition: none !important;
 }
 
 /* Make close button appear instantly with more specificity */
-.vc-channeltabs-container.vc-channeltabs-no-compact-animation .vc-channeltabs-tab-compact:hover .vc-channeltabs-close-button-compact,
-.vc-channeltabs-container.vc-channeltabs-no-compact-animation .vc-channeltabs-tab-compact.vc-channeltabs-tab-selected .vc-channeltabs-close-button-compact {
+.vc-channeltabs-container.vc-channeltabs-no-compact-animation
+    .vc-channeltabs-tab-compact:hover
+    .vc-channeltabs-close-button-compact,
+.vc-channeltabs-container.vc-channeltabs-no-compact-animation
+    .vc-channeltabs-tab-compact.vc-channeltabs-tab-selected
+    .vc-channeltabs-close-button-compact {
     transition: none !important;
     transition-delay: 0s !important;
 }
 
 /* Tab positioning - disable if setting is off for INSTANT position changes */
-.vc-channeltabs-container.vc-channeltabs-no-tab-positioning .vc-channeltabs-tab-container {
+.vc-channeltabs-container.vc-channeltabs-no-tab-positioning
+    .vc-channeltabs-tab-container {
     transition: none !important;
 }
 
-.vc-channeltabs-container.vc-channeltabs-no-tab-positioning .vc-channeltabs-tab {
+.vc-channeltabs-container.vc-channeltabs-no-tab-positioning
+    .vc-channeltabs-tab {
     transition: none !important;
 }
 
-.vc-channeltabs-container.vc-channeltabs-no-tab-positioning .vc-channeltabs-tab-container:has(.vc-channeltabs-tab-dragging) .vc-channeltabs-tab:not(.vc-channeltabs-tab-dragging) {
+.vc-channeltabs-container.vc-channeltabs-no-tab-positioning
+    .vc-channeltabs-tab-container:has(.vc-channeltabs-tab-dragging)
+    .vc-channeltabs-tab:not(.vc-channeltabs-tab-dragging) {
     transition: none !important;
 }
 
 /* Compact auto-expand selected - disable if setting is off */
-.vc-channeltabs-container.vc-channeltabs-no-compact-auto-expand .vc-channeltabs-tab-compact.vc-channeltabs-tab-selected .vc-channeltabs-tab-inner {
+.vc-channeltabs-container.vc-channeltabs-no-compact-auto-expand
+    .vc-channeltabs-tab-compact.vc-channeltabs-tab-selected
+    .vc-channeltabs-tab-inner {
     padding-right: 0 !important;
 }
 
-.vc-channeltabs-container.vc-channeltabs-no-compact-auto-expand .vc-channeltabs-tab-compact.vc-channeltabs-tab-selected .vc-channeltabs-name-text {
+.vc-channeltabs-container.vc-channeltabs-no-compact-auto-expand
+    .vc-channeltabs-tab-compact.vc-channeltabs-tab-selected
+    .vc-channeltabs-name-text {
     max-width: 0 !important;
     opacity: 0 !important;
     transform: translateX(-20px) !important;
 }
 
 /* Hide close button on selected compact tabs when auto-expand is disabled */
-.vc-channeltabs-container.vc-channeltabs-no-compact-auto-expand .vc-channeltabs-tab-compact.vc-channeltabs-tab-selected .vc-channeltabs-close-button-compact {
+.vc-channeltabs-container.vc-channeltabs-no-compact-auto-expand
+    .vc-channeltabs-tab-compact.vc-channeltabs-tab-selected
+    .vc-channeltabs-close-button-compact {
     opacity: 0 !important;
     pointer-events: none;
 }
 
 /* Compact hover expansion - disable if setting is off */
-.vc-channeltabs-container.vc-channeltabs-no-compact-hover-expand .vc-channeltabs-tab-compact:hover .vc-channeltabs-tab-inner {
+.vc-channeltabs-container.vc-channeltabs-no-compact-hover-expand
+    .vc-channeltabs-tab-compact:hover
+    .vc-channeltabs-tab-inner {
     padding-right: 0 !important;
 }
 
-.vc-channeltabs-container.vc-channeltabs-no-compact-hover-expand .vc-channeltabs-tab-compact:hover .vc-channeltabs-name-text {
+.vc-channeltabs-container.vc-channeltabs-no-compact-hover-expand
+    .vc-channeltabs-tab-compact:hover
+    .vc-channeltabs-name-text {
     max-width: 0 !important;
     opacity: 0 !important;
     transform: translateX(-20px) !important;
 }
 
 /* Hide close button on hover for compact tabs when hover-expand is disabled */
-.vc-channeltabs-container.vc-channeltabs-no-compact-hover-expand .vc-channeltabs-tab-compact:hover .vc-channeltabs-close-button-compact {
+.vc-channeltabs-container.vc-channeltabs-no-compact-hover-expand
+    .vc-channeltabs-tab-compact:hover
+    .vc-channeltabs-close-button-compact {
     opacity: 0 !important;
     pointer-events: none;
 }
 
 /* Drag and drop visual feedback */
 .vc-channeltabs-bookmarks-drop-target {
-    background-color: color-mix(in srgb, var(--brand-500) 15%, transparent);
-    border: 1px dashed color-mix(in srgb, var(--brand-500) 65%, transparent);
+    background-color: color-mix(
+        in srgb,
+        var(--background-brand) 15%,
+        transparent
+    );
+    border: 1px dashed
+        color-mix(in srgb, var(--background-brand) 65%, transparent);
     border-radius: 6px;
 }
 
@@ -1083,8 +1219,13 @@
 }
 
 .vc-channeltabs-bookmark.vc-channeltabs-bookmark-drop-target {
-    border-color: color-mix(in srgb, var(--brand-500) 70%, var(--border-subtle));
-    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--brand-500) 35%, transparent);
+    border-color: color-mix(
+        in srgb,
+        var(--background-brand) 70%,
+        var(--border-subtle)
+    );
+    box-shadow: inset 0 0 0 1px
+        color-mix(in srgb, var(--background-brand) 35%, transparent);
 }
 
 .vc-channeltabs-bookmark.vc-channeltabs-bookmark-drop-before::before,
@@ -1095,8 +1236,9 @@
     bottom: 3px;
     width: 2px;
     border-radius: 999px;
-    background-color: var(--brand-500);
-    box-shadow: 0 0 0 1px color-mix(in srgb, var(--brand-500) 30%, transparent);
+    background-color: var(--background-brand);
+    box-shadow: 0 0 0 1px
+        color-mix(in srgb, var(--background-brand) 30%, transparent);
 }
 
 .vc-channeltabs-bookmark.vc-channeltabs-bookmark-drop-before::before {
@@ -1116,10 +1258,16 @@
 }
 
 .vc-channeltabs-bookmark.vc-channeltabs-folder-drop-target {
-    background-color: color-mix(in srgb, var(--brand-500) 22%, transparent);
-    border: 1px solid color-mix(in srgb, var(--brand-500) 80%, var(--border-subtle));
+    background-color: color-mix(
+        in srgb,
+        var(--background-brand) 22%,
+        transparent
+    );
+    border: 1px solid
+        color-mix(in srgb, var(--background-brand) 80%, var(--border-subtle));
     transform: scale(1.03);
-    box-shadow: 0 0 0 2px color-mix(in srgb, var(--brand-500) 20%, transparent);
+    box-shadow: 0 0 0 2px
+        color-mix(in srgb, var(--background-brand) 20%, transparent);
 }
 
 .vc-channeltabs-bookmark.vc-channeltabs-folder-expanded {
@@ -1142,13 +1290,17 @@
 
 /* Active bookmark visual indicator */
 .vc-channeltabs-bookmark.vc-channeltabs-bookmark-active {
-    border: 1px solid var(--brand-500);
-    box-shadow: 0 0 4px var(--brand-500);
-    background-color: color-mix(in srgb, var(--brand-500) 15%, transparent);
+    border: 1px solid var(--background-brand);
+    box-shadow: 0 0 4px var(--background-brand);
+    background-color: color-mix(
+        in srgb,
+        var(--background-brand) 15%,
+        transparent
+    );
 }
 
 .vc-channeltabs-bookmark.vc-channeltabs-bookmark-active:hover {
-    box-shadow: 0 0 6px var(--brand-500);
+    box-shadow: 0 0 6px var(--background-brand);
 }
 
 /* keybind Settings Styles */
@@ -1223,7 +1375,11 @@
 }
 
 .channelTabs-keybind-button.listening {
-    background: linear-gradient(135deg, var(--brand-experiment) 0%, var(--brand-experiment-560) 100%);
+    background: linear-gradient(
+        135deg,
+        var(--brand-experiment) 0%,
+        var(--brand-experiment-560) 100%
+    );
     color: var(--white);
     border-color: var(--brand-experiment);
     animation: keybind-pulse 1.5s ease-in-out infinite;
@@ -1231,7 +1387,6 @@
 }
 
 @keyframes keybind-pulse {
-
     /* stylelint-disable-next-line rule-empty-line-before */
     0%,
     100% {
@@ -1254,7 +1409,6 @@
 }
 
 @keyframes shake {
-
     /* stylelint-disable-next-line rule-empty-line-before */
     0%,
     100% {
@@ -1320,7 +1474,8 @@
 }
 
 /* directional slide animations for compact mode */
-.vc-channeltabs-tab-compact:not(:hover, .vc-channeltabs-tab-selected) .vc-channeltabs-tab-number-badge[data-position="right"] {
+.vc-channeltabs-tab-compact:not(:hover, .vc-channeltabs-tab-selected)
+    .vc-channeltabs-tab-number-badge[data-position="right"] {
     opacity: 0;
     transform: translateX(-6px) scale(0.95);
     max-width: 0;
@@ -1328,7 +1483,8 @@
     pointer-events: none;
 }
 
-.vc-channeltabs-tab-compact:not(:hover, .vc-channeltabs-tab-selected) .vc-channeltabs-tab-number-badge[data-position="left"] {
+.vc-channeltabs-tab-compact:not(:hover, .vc-channeltabs-tab-selected)
+    .vc-channeltabs-tab-number-badge[data-position="left"] {
     opacity: 0;
     transform: translateX(-6px) scale(0.95);
     max-width: 0;
