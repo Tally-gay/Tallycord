@@ -190,6 +190,12 @@ export const settings = definePluginSettings({
         default: false,
         restartNeeded: false
     },
+    mergePills: {
+        type: OptionType.BOOLEAN,
+        description: "Merge seperated unread count, mention count, and typing pills into one",
+        default: false,
+        restartNeeded: false
+    },
     switchToExistingTab: {
         type: OptionType.BOOLEAN,
         description: "Switch to tab if it already exists for the channel you're navigating to",
