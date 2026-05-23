@@ -1,16 +1,12 @@
-name: Build and Release
-
+name: Release
 on:
     push:
         branches:
             - main
-        tags:
-            - v*
 
 env:
     FORCE_COLOR: true
     GITHUB_TOKEN: ${{ secrets.ETOKEN }}
-    GH_TOKEN: ${{ github.token }}
     REPO: Equicord/Equibored
     USERNAME: GitHub-Actions
 
@@ -18,75 +14,61 @@ permissions:
     contents: write
 
 jobs:
-    build-and-release:
+    Build:
+        name: Build Equicord
         runs-on: ubuntu-latest
-
         steps:
             - uses: actions/checkout@v4
-
-            - uses: pnpm/action-setup@v3
-
-            - name: Use Node.js 24
-              uses: actions/setup-node@v4
+            - uses: oven-sh/setup-bun@v2
               with:
-                  node-version: 24
-                  cache: "pnpm"
-
+                  bun-version: latest
             - name: Install dependencies
-              run: pnpm install --frozen-lockfile
-
+              run: bun install
             - name: Build web
-              run: pnpm buildWebStandalone
-
+              run: bun run buildWebStandalone
             - name: Build
-              run: pnpm buildStandalone
+              run: bun run buildStandalone
 
             - name: Generate plugin lists
               run: |
-                  pnpm generatePluginJson dist/plugins.json
-                  pnpm generateEquicordPluginJson dist/equicordplugins.json
-                  pnpm generateVencordPluginJson dist/vencordplugins.json
-                  pnpm generateDevsList dist/devs.json
+                  bun run generatePluginJson dist/plugins.json
+                  bun run generateEquicordPluginJson dist/equicordplugins.json
+                  bun run generateVencordPluginJson dist/vencordplugins.json
+                  bun run generateDevsList dist/devs.json
 
             - name: Collect files to be released
               run: |
                   cd dist
                   mkdir release
-
                   cp browser/browser.* release
                   cp Equicord.user.{js,js.LEGAL.txt} release
+
+                  # copy the plugin data jsons, the extension zips and the desktop/equibop asars
                   cp *.{json,zip,asar} release
-
+                  # legacy un-asared files
                   cp desktop/* release
-                  for file in tallytop/*; do
+                  for file in equibop/*; do
                     filename=$(basename "$file")
-                    cp "$file" "release/tallytop${filename^}"
+                    cp "$file" "release/equibop${filename^}"
                   done
-
                   find release -size 0 -delete
-                  rm -f release/package.json
-                  rm -f release/*.map
-
-            - name: Determine tag name
-              id: get_tag
+                  rm release/package.json
+                  rm release/*.map
+            - name: Upload Equicord Stable
+              if: ${{ vars.ACT == 'false' }}
               run: |
-                  if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
-                    echo "tag_name=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
-                  else
-                    echo "tag_name=latest" >> $GITHUB_OUTPUT
-                  fi
+                  gh release upload latest --clobber dist/release/*
 
-            - name: Create release if not exists
+            - name: Upload Plugin JSONs to Equibored repo
+              if: github.repository == 'Equicord/Equicord' && !vars.ACT == 'false'
               run: |
-                  TAG_NAME=${{ steps.get_tag.outputs.tag_name }}
+                  git config --global user.name "GitHub-Actions"
+                  git config --global user.email actions@github.com
+                  git clone https://$USERNAME:$GITHUB_TOKEN@github.com/$REPO.git plugins
+                  cd plugins
 
-                  if ! gh release view "$TAG_NAME" > /dev/null 2>&1; then
-                    gh release create "$TAG_NAME" \
-                      --title "Release $TAG_NAME" \
-                      --notes "Automated release for commit ${{ github.sha }}"
-                  fi
-
-            - name: Upload files to GitHub Release
-              run: |
-                  TAG_NAME=${{ steps.get_tag.outputs.tag_name }}
-                  gh release upload "$TAG_NAME" dist/release/* --clobber
+                  cp ../dist/release/*plugins.json .
+                  cp ../dist/release/devs.json .
+                  git add -A
+                  git commit -m "Plugins for https://github.com/$GITHUB_REPOSITORY/commit/$GITHUB_SHA"
+                  git push --force https://$USERNAME:$GITHUB_TOKEN@github.com/$REPO.git

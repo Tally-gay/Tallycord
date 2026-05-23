@@ -33,28 +33,24 @@ jobs:
               with:
                   ref: ${{ github.event_name == 'schedule' && 'dev' || github.ref }}
 
-            - uses: pnpm/action-setup@v6 # Install pnpm using packageManager key in package.json
+            - uses: oven-sh/setup-bun@v2
 
-            - name: Use Node.js 24
-              uses: actions/setup-node@v6
               with:
-                  node-version: 24
-                  cache: "pnpm"
+                  bun-version: latest
 
             - name: Install dependencies
               run: |
-                  pnpm install --frozen-lockfile --prefer-offline
+                  bun install
 
             - name: Build Equicord Reporter Version
-              run: pnpm buildReporter
+              run: bun run buildReporter
 
             - name: Run Reporter
               timeout-minutes: 10
               run: |
-                  export PATH="$PWD/node_modules/.bin:$PATH"
                   export CHROMIUM_BIN=/usr/bin/google-chrome
 
-                  esbuild scripts/generateReport.ts > dist/report.mjs
+                  bun build scripts/generateReport.ts --outfile dist/report.mjs --target bun
 
                   stable_output_file=$(mktemp)
                   canary_output_file=$(mktemp)
@@ -67,20 +63,20 @@ jobs:
                   fi
 
                   if [[ "$branch" = "both" || "$branch" = "stable" ]]; then
-                    node dist/report.mjs > "$stable_output_file" &
+                    bun run dist/report.mjs > "$stable_output_file" &
                     pids+=" $!"
                   fi
 
                   if [[ "$branch" = "both" || "$branch" = "canary" ]]; then
-                    USE_CANARY=true node dist/report.mjs > "$canary_output_file" &
+                    USE_CANARY=true bun run dist/report.mjs > "$canary_output_file" &
                     pids+=" $!"
                   fi
 
                   exit_code=0
                   for pid in $pids; do
-                      if ! wait "$pid"; then
-                        exit_code=1
-                      fi
+                    if ! wait "$pid"; then
+                      exit_code=1
+                    fi
                   done
 
                   cat "$stable_output_file" "$canary_output_file" >> $GITHUB_STEP_SUMMARY
