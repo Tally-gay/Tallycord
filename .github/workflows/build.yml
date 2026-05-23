@@ -55,6 +55,9 @@ jobs:
                   rm release/package.json
                   rm release/*.map
             - name: Upload Equicord Stable
+              env:
+                  GH_TOKEN: ${{ github.token }}
+
               run: |
                   gh release upload latest --clobber dist/release/*
 
