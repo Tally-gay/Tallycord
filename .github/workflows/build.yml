@@ -56,7 +56,7 @@ jobs:
                   find release -size 0 -delete
                   rm release/package.json
                   rm release/*.map
-            - name: Upload Equicord Stable
+            - name: Upload tallycord Stable
               env:
                   GH_TOKEN: ${{ github.token }}
 
