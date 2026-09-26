@@ -11,49 +11,37 @@ export interface ChannelUnreadState {
     unreadCount: number;
 }
 
-export interface NotificationDotState {
-    badgeText: string | null;
-    hasMention: boolean;
-    shouldShow: boolean;
-}
+export type NotificationDotState = {
+    pingText: string | null;
+    unreadText: string | null;
+    shouldShowPing: boolean;
+    shouldShowUnread: boolean;
+};
 
 export function getNotificationDotState(
     channelStates: ChannelUnreadState[],
     cachedUnreadCounts: Record<string, number>,
     shouldUseFallback: boolean
 ): NotificationDotState {
-    const mentionCount = channelStates.reduce((count, state) => count + state.mentionCount, 0);
-    if (mentionCount > 0) {
-        return {
-            badgeText: String(mentionCount),
-            hasMention: true,
-            shouldShow: true
-        };
-    }
-
+    let mentionCount = 0;
     let unreadCount = 0;
     let fallbackCount = 0;
 
     for (const state of channelStates) {
+        mentionCount += state.mentionCount;
         unreadCount += state.unreadCount;
-        if (state.unreadCount > 0 || !shouldUseFallback || !state.hasUnread) continue;
 
+        if (state.unreadCount > 0 || !shouldUseFallback || !state.hasUnread) continue;
         fallbackCount += Math.max(cachedUnreadCounts[state.channelId] ?? 0, 1);
     }
 
-    const totalCount = unreadCount + fallbackCount;
-    if (totalCount === 0) {
-        return {
-            badgeText: null,
-            hasMention: false,
-            shouldShow: false
-        };
-    }
+    const totalUnread = unreadCount + fallbackCount;
 
     return {
-        badgeText: fallbackCount > 0 ? `${totalCount}+` : String(totalCount),
-        hasMention: false,
-        shouldShow: true
+        pingText: mentionCount > 0 ? String(mentionCount) : null,
+        unreadText: totalUnread > 0 ? (fallbackCount > 0 ? `${totalUnread}+` : String(totalUnread)) : null,
+        shouldShowPing: mentionCount > 0,
+        shouldShowUnread: (totalUnread > 0) && (totalUnread > mentionCount)
     };
 }
 

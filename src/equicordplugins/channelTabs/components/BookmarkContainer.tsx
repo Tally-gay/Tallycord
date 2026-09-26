@@ -123,6 +123,100 @@ function BookmarkIcon({ bookmark }: { bookmark: Bookmark | BookmarkFolder; }) {
     );
 }
 
+function BookmarkFolderOpenMenu(props: BookmarkProps) {
+    const { bookmarks, index, methods } = props;
+    const bookmark = bookmarks[index] as BookmarkFolder;
+    const { bookmarkNotificationDot } = settings.use(["bookmarkNotificationDot"]);
+
+    return (
+        <Menu.Menu
+            navId="bookmark-folder-menu"
+            onClose={() => FluxDispatcher.dispatch({ type: "CONTEXT_MENU_CLOSE" })}
+            aria-label="Bookmark Folder Menu"
+        >
+            {bookmark.bookmarks.map((b, i) => (
+                <Menu.MenuItem
+                    key={`bookmark-folder-entry-${b.channelId}`}
+                    id={`bookmark-folder-entry-${b.channelId}`}
+                    label={
+                        <div
+                            style={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "0.25rem"
+                            }}>
+                            <span
+                                style={{
+                                    overflow: "hidden",
+                                    textOverflow: "ellipsis"
+                                }}>
+                                {b.name}
+                            </span>
+                            {bookmarkNotificationDot && <NotificationDot pingOverrides={true} channelIds={[b.channelId]} />}
+                        </div>
+                    }
+                    icon={() => <BookmarkIcon bookmark={b} />}
+                    showIconFirst={true}
+                    action={() => switchChannel(b)}
+                >
+                    {bookmarkNotificationDot && (
+                        <Menu.MenuGroup>
+                            <Menu.MenuItem
+                                key="mark-as-read"
+                                id="mark-as-read"
+                                label={getIntlMessage("MARK_AS_READ")}
+                                disabled={!ReadStateStore.hasUnread(b.channelId)}
+                                action={() => ReadStateUtils.ackChannel(ChannelStore.getChannel(b.channelId))}
+                            />
+                        </Menu.MenuGroup>
+                    )}
+                    <Menu.MenuGroup key="bookmarks">
+                        <Menu.MenuItem
+                            key="edit-bookmark"
+                            id="edit-bookmark"
+                            label="Edit Bookmark"
+                            action={() => {
+                                const key = openModal(modalProps =>
+                                    <EditModal
+                                        modalProps={modalProps}
+                                        modalKey={key}
+                                        bookmark={b}
+                                        onSave={name => {
+                                            const newBookmarks = [...bookmark.bookmarks];
+                                            newBookmarks[i].name = name;
+                                            methods.editBookmark(index, { bookmarks: newBookmarks });
+                                            closeModal(key);
+                                        }}
+                                    />
+                                );
+                            }}
+                        />
+                        <Menu.MenuItem
+                            key="delete-bookmark"
+                            id="delete-bookmark"
+                            label="Delete Bookmark"
+                            action={() => {
+                                methods.deleteBookmark(i, index);
+                            }}
+                        />
+                        <Menu.MenuItem
+                            key="remove-bookmark-from-folder"
+                            id="remove-bookmark-from-folder"
+                            label="Remove Bookmark from Folder"
+                            action={() => {
+                                const newBookmarks = [...bookmark.bookmarks];
+                                newBookmarks.splice(i, 1);
+                                methods.addBookmark(b);
+                                methods.editBookmark(index, { bookmarks: newBookmarks });
+                            }}
+                        />
+                    </Menu.MenuGroup>
+                </Menu.MenuItem>
+            ))}
+        </Menu.Menu>
+    );
+}
+
 function FolderBookmarkItem({ bookmark, bookmarks, folderIndex, bookmarkIndex, methods, isCurrentChannel, searchActive }: {
     bookmark: Bookmark;
     bookmarks: (Bookmark | BookmarkFolder)[];
@@ -276,7 +370,7 @@ function FolderBookmarkItem({ bookmark, bookmarks, folderIndex, bookmarkIndex, m
             <BaseText size="sm" className={cl("name-text")}>
                 {bookmark.name}
             </BaseText>
-            {bookmarkNotificationDot && <NotificationDot channelIds={[bookmark.channelId]} />}
+            {bookmarkNotificationDot && <NotificationDot channelIds={[bookmark.channelId]} pingOverrides={true} />}
         </div>
     );
 }
@@ -438,7 +532,7 @@ function Bookmark(props: BookmarkProps & { isExpanded?: boolean; onToggleFolder?
             <BaseText size="sm" className={cl("name-text")}>
                 {bookmark.name}
             </BaseText>
-            {bookmarkNotificationDot && <NotificationDot channelIds={isBookmarkFolder(bookmark)
+            {bookmarkNotificationDot && <NotificationDot pingOverrides={true} channelIds={isBookmarkFolder(bookmark)
                 ? bookmark.bookmarks.map(b => b.channelId)
                 : [bookmark.channelId]
             } />}
