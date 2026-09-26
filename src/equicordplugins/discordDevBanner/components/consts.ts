@@ -13,7 +13,7 @@ export const settings = definePluginSettings({
     format: {
         component: ({ setValue }) => FormatSetting(setValue),
         type: OptionType.COMPONENT,
-        default: "{buildChannel} {buildNumber} ({buildHash}) | {equicordName} {equicordVersion} ({equicordHash})",
+        default: "{equicordIcon} Equicord {equicordVersion} ({equicordHash})",
         restartNeeded: true
     }
 });
@@ -39,9 +39,9 @@ export const settingVariables = [
     "{equicordHash} - Equicord build hash (e.g. 123456789)",
     "{equicordPlatform} - Platform Equicord is running on (e.g. Dev Build)",
     "",
-    "Tallytop Specific Variables:",
-    "{tallytopHash} - Tallytop build hash (e.g. 123456789)",
-    "{tallytopPlatform} - Platform Tallytop is running on (e.g. Dev Build)",
+    "Equibop Specific Variables:",
+    "{equibopHash} - Equibop build hash (e.g. 123456789)",
+    "{equibopPlatform} - Platform Equibop is running on (e.g. Dev Build)",
     "",
     "Client Variables:",
     "{clientIcon} - Desktop icon",

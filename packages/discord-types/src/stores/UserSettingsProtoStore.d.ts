@@ -8,6 +8,7 @@ export interface GuildFolder {
     folderId?: number;
     folderName?: string;
     folderColor?: number;
+    expanded?: boolean;
 }
 
 export interface GuildProto {
@@ -223,4 +224,10 @@ export class UserSettingsProtoStore extends FluxStore {
     // TODO: finish typing
     getGuildDismissedContentState(guildId: string): any;
     getGuildsProto(): Record<string, GuildProto>;
+    /** guild theme source preference from appearance settings, 0 if unspecified */
+    getDefaultGuildThemePreference(): number;
+    /** per guild theme source preference, 0 if unspecified */
+    getGuildThemeSourcePreferenceOverride(guildId: string | null | undefined): number;
+    /** override if set, otherwise the default preference */
+    resolveGuildThemeSourcePreference(guildId: string | null | undefined): number;
 }

@@ -204,11 +204,9 @@ export function uwuifyArray(arr) {
     return newArr;
 }
 
-export function getMessage(opts, other) {
+export function getFavoriteGif(opts: CommandArgument[], other: CommandContext) {
     const frecencyStore = UserSettingsActionCreators.FrecencyUserSettingsActionCreators.getCurrentValue();
-
     const gifsArray = Object.keys(frecencyStore.favoriteGifs.gifs);
-
     const chosenGifUrl = gifsArray[Math.floor(Math.random() * gifsArray.length)];
 
     return `${chosenGifUrl}`;
@@ -244,7 +242,10 @@ export function loadFriendImage(source: File | string): Promise<HTMLImageElement
             if (isFile) URL.revokeObjectURL(url);
             resolve(img);
         };
-        img.onerror = (event, _source, _lineno, _colno, err) => reject(err || event);
+        img.onerror = (event, _source, _lineno, _colno, err) => {
+            if (isFile) URL.revokeObjectURL(url);
+            reject(err || event);
+        };
         img.crossOrigin = "anonymous";
         img.src = url;
     });
@@ -345,7 +346,10 @@ export function loadImage(source: File | string) {
             if (isFile) URL.revokeObjectURL(url);
             resolve(img);
         };
-        img.onerror = (event, _source, _lineno, _colno, err) => reject(err || event);
+        img.onerror = (event, _source, _lineno, _colno, err) => {
+            if (isFile) URL.revokeObjectURL(url);
+            reject(err || event);
+        };
         img.crossOrigin = "Anonymous";
         img.src = url;
     });

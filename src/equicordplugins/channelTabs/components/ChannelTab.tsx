@@ -9,7 +9,7 @@ import { ChannelTabsProps, closeTab, ensureUnreadFallbackCountsLoaded, getNotifi
 import { ActivityIcon, CircleQuestionIcon, DiscoveryIcon, EnvelopeIcon, FriendsIcon, ICYMIIcon, NitroIcon, QuestIcon, ShopIcon } from "@equicordplugins/channelTabs/util/icons";
 import { getActiveAutoCompletes } from "@equicordplugins/questify/utils/completion";
 import { classNameFactory } from "@utils/css";
-import { getGuildAcronym, getIntlMessage, getUniqueUsername } from "@utils/discord";
+import { getGuildAcronym, getIntlMessage } from "@utils/discord";
 import { classes } from "@utils/misc";
 import { Channel, Guild, User } from "@vencord/discord-types";
 import { findComponentByCodeLazy, findCssClassesLazy } from "@webpack";
@@ -71,9 +71,8 @@ const ChannelIcon = ({ channel }: { channel: Channel; }) =>
 
 function TypingIndicator({ isTyping }: { isTyping: boolean; }) {
     return isTyping
-        ? <div className={cl("typing-indicator-container")}><ThreeDots dotRadius={3} themed={true} className={cl("typing-indicator")} /></div>
+        ? <ThreeDots dotRadius={3} themed={true} className={cl("typing-indicator")} />
         : null;
-    ;
 }
 
 function getChannelUnreadState(channelId: string) {
@@ -91,7 +90,7 @@ function getChannelUnreadState(channelId: string) {
     };
 }
 
-export const NotificationDot = ({ channelIds, pingOverrides }: { channelIds: string[]; pingOverrides: boolean; }) => {
+export const NotificationDot = ({ channelIds }: { channelIds: string[]; }) => {
     const userId = UserStore.getCurrentUser()?.id;
     const { persistUnreadCountFallback } = settings.use(["persistUnreadCountFallback"]);
     const [, forceUpdate] = useState(0);
@@ -100,11 +99,8 @@ export const NotificationDot = ({ channelIds, pingOverrides }: { channelIds: str
         [ActiveJoinedThreadsStore, ReadStateStore],
         () => channelIds.map(getChannelUnreadState)
     );
-    const stateSignature = channelStates
-        .map(state => `${state.channelId}:${Number(state.hasUnread)}:${state.mentionCount}:${state.unreadCount}`)
-        .join("|");
-
-    const { pingText, unreadText, shouldShowPing, shouldShowUnread } = getNotificationDotState(
+    const stateSignature = channelStates.map(state => `${state.channelId}:${Number(state.hasUnread)}:${state.mentionCount}:${state.unreadCount}`).join("|");
+    const { badgeText, hasMention, shouldShow } = getNotificationDotState(
         channelStates,
         userId ? getUnreadFallbackCounts(userId) : {},
         persistUnreadCountFallback
@@ -129,35 +125,21 @@ export const NotificationDot = ({ channelIds, pingOverrides }: { channelIds: str
         updateUnreadFallbackCounts(userId, channelStates);
     }, [channelStateKey, persistUnreadCountFallback, stateSignature, userId]);
 
-    return (
-        <>
-            {shouldShowPing ? (
-                <div
-                    data-has-mention
-                    className={classes(cl("notification-badge"), dotStyles.numberBadge, dotStyles.baseShapeRound)}
-                    ref={node =>
-                        node?.style.setProperty("background-color", "var(--red-400)", "important")
-                    }
-                >
-                    {pingText}
-                </div>
-            ) : null}
-
-
-            {!(pingOverrides && shouldShowPing) && shouldShowUnread ? (
-                <div
-                    data-has-unread
-                    className={classes(cl("notification-badge"), dotStyles.numberBadge, dotStyles.baseShapeRound)}
-                    ref={node =>
-                        node?.style.setProperty("background-color", "var(--brand-500)", "important")
-                    }
-                >
-                    {unreadText}
-                </div>
-            ) : null}
-        </>
-    );
+    return shouldShow ?
+        <div
+            data-has-mention={hasMention}
+            className={classes(cl("notification-badge"), dotStyles.numberBadge, dotStyles.baseShapeRound)}
+            style={{
+                width: "16px"
+            }}
+            ref={node => node?.style.setProperty("background-color",
+                hasMention ? "var(--danger-color, var(--red-400))" : "var(--main-color, var(--brand-experiment, var(--brand-500)))", "important"
+            )}
+        >
+            {badgeText}
+        </div> : null;
 };
+
 interface TabNumberBadgeProps {
     number: number;
     position: "left" | "right";
@@ -187,16 +169,13 @@ export const TabNumberBadge = ({ number, position, isSelected, isCompact, isHove
 function ChannelTabContent(props: ChannelTabsProps & {
     guild?: Guild,
     channel?: Channel;
-    showTabNumbers?: boolean;
-    tabIndex?: number;
 }) {
     const { guild, guildId, channel, channelId, compact } = props;
     const userId = UserStore.getCurrentUser()?.id;
     const recipients = channel?.recipients;
     const {
-        noPomeloNames,
         showStatusIndicators
-    } = settings.use(["noPomeloNames", "showStatusIndicators"]);
+    } = settings.use(["showStatusIndicators"]);
 
     const [isTyping, status, isMobile] = useStateFromStores(
         [TypingStore, PresenceStore],
@@ -218,18 +197,8 @@ function ChannelTabContent(props: ChannelTabsProps & {
                     <GuildIcon guild={guild} />
                     <ChannelTypeIcon channel={channel} guild={guild} />
                     <BaseText className={cl("name-text")}>{channel.name}</BaseText>
-                    <div className={cl("extra-container")}>
-                        {props.showTabNumbers && <div
-                            className={classes(cl("notification-badge"), dotStyles.numberBadge, dotStyles.baseShapeRound)}
-                            ref={node =>
-                                node?.style.setProperty("background-color", "var(--channeltabs-dark-gray)", "important")
-                            }
-                        >
-                            {props.tabIndex ?? 0 + 1}
-                        </div>}
-                        <NotificationDot channelIds={[channel.id]} pingOverrides={false} />
-                        <TypingIndicator isTyping={isTyping} />
-                    </div>
+                    <NotificationDot channelIds={[channel.id]} />
+                    <TypingIndicator isTyping={isTyping} />
                 </>
             );
         else {
@@ -255,16 +224,6 @@ function ChannelTabContent(props: ChannelTabsProps & {
                 <>
                     <GuildIcon guild={guild} />
                     <BaseText className={cl("name-text")}>{name}</BaseText>
-                    <div className={cl("extra-container")}>
-                        {props.showTabNumbers && <div
-                            className={classes(cl("notification-badge"), dotStyles.numberBadge, dotStyles.baseShapeRound)}
-                            ref={node =>
-                                node?.style.setProperty("background-color", "var(--channeltabs-dark-gray)", "important")
-                            }
-                        >
-                            {props.tabIndex ?? 0 + 1}
-                        </div>}
-                    </div>
                 </>
             );
         }
@@ -273,9 +232,7 @@ function ChannelTabContent(props: ChannelTabsProps & {
     if (channel && recipients?.length) {
         if (recipients.length === 1) {
             const user = UserStore.getUser(recipients[0]) as User & { globalName: string; };
-            const username = noPomeloNames
-                ? user.globalName || user.username
-                : getUniqueUsername(user);
+            const username = user.globalName || user.username;
 
             return (
                 <>
@@ -289,18 +246,8 @@ function ChannelTabContent(props: ChannelTabsProps & {
                     <BaseText className={cl("name-text")}>
                         {username}
                     </BaseText>
-                    <div className={cl("extra-container")}>
-                        {props.showTabNumbers && <div
-                            className={classes(cl("notification-badge"), dotStyles.numberBadge, dotStyles.baseShapeRound)}
-                            ref={node =>
-                                node?.style.setProperty("background-color", "var(--channeltabs-dark-gray)", "important")
-                            }
-                        >
-                            {props.tabIndex ?? 0 + 1}
-                        </div>}
-                        <NotificationDot channelIds={[channel.id]} pingOverrides={false} />
-                        {/* {!showStatusIndicators && <TypingIndicator isTyping={isTyping} />} */}
-                    </div>
+                    <NotificationDot channelIds={[channel.id]} />
+                    {!showStatusIndicators && <TypingIndicator isTyping={isTyping} />}
                 </>
             );
         } else {
@@ -309,18 +256,8 @@ function ChannelTabContent(props: ChannelTabsProps & {
                 <>
                     <ChannelIcon channel={channel} />
                     <BaseText className={cl("name-text")}>{channel?.name || getIntlMessage("GROUP_DM")}</BaseText>
-                    <div className={cl("extra-container")}>
-                        {props.showTabNumbers && <div
-                            className={classes(cl("notification-badge"), dotStyles.numberBadge, dotStyles.baseShapeRound)}
-                            ref={node =>
-                                node?.style.setProperty("background-color", "var(--channeltabs-dark-gray)", "important")
-                            }
-                        >
-                            {props.tabIndex ?? 0 + 1}
-                        </div>}
-                        <NotificationDot channelIds={[channel.id]} pingOverrides={false} />
-                        <TypingIndicator isTyping={isTyping} />
-                    </div>
+                    <NotificationDot channelIds={[channel.id]} />
+                    <TypingIndicator isTyping={isTyping} />
                 </>
             );
         }
@@ -380,7 +317,7 @@ export default function ChannelTab(props: ChannelTabsProps & { index: number; })
     const [isDropTarget, setIsDropTarget] = useState(false);
     const [isHovered, setIsHovered] = useState(false);
 
-    const { showTabNumbers, mergePills } = settings.use(["showTabNumbers", "mergePills"]);
+    const { showTabNumbers, tabNumberPosition } = settings.use(["showTabNumbers", "tabNumberPosition"]);
 
     useEffect(() => {
         if (isEntering) {
@@ -527,8 +464,7 @@ export default function ChannelTab(props: ChannelTabsProps & { index: number; })
     }), []);
     drag(drop(ref));
 
-    // check if quests running (questify momentLet)
-
+    const hasActiveQuests = getActiveAutoCompletes().length > 0;
     return <div
         className={cl("tab", {
             "tab-compact": compact,
@@ -538,6 +474,7 @@ export default function ChannelTab(props: ChannelTabsProps & { index: number; })
             "tab-dragging": isDragging,
             "tab-drop-target": isDropTarget,
             "tab-nitro": channelId === "__nitro__",
+            "tab-quests-active": channelId === "__quests__" && hasActiveQuests,
             wider: settings.store.widerTabsAndBookmarks
         })}
         key={index}
@@ -551,7 +488,7 @@ export default function ChannelTab(props: ChannelTabsProps & { index: number; })
         onContextMenu={e => ContextMenuApi.openContextMenu(e, () => <TabContextMenu tab={props} />)}
     >
         <button
-            className={cl("button", "channel-info", mergePills && "merge-pills")}
+            className={cl("button", "channel-info")}
             onClick={() => moveToTab(id)}
         >
             <div
@@ -559,7 +496,7 @@ export default function ChannelTab(props: ChannelTabsProps & { index: number; })
                 data-compact={compact}
             >
                 {/* left position badge */}
-                {/* {showTabNumbers && tabNumberPosition === "left" && (
+                {showTabNumbers && tabNumberPosition === "left" && (
                     <TabNumberBadge
                         number={index + 1}
                         position="left"
@@ -567,12 +504,12 @@ export default function ChannelTab(props: ChannelTabsProps & { index: number; })
                         isCompact={compact}
                         isHovered={isHovered}
                     />
-                )} */}
+                )}
 
-                <ChannelTabContent {...props} guild={guild} channel={channel} showTabNumbers={showTabNumbers} tabIndex={index} />
+                <ChannelTabContent {...props} guild={guild} channel={channel} />
 
                 {/* right position badge */}
-                {/* {showTabNumbers && tabNumberPosition === "right" && (
+                {showTabNumbers && tabNumberPosition === "right" && (
                     <TabNumberBadge
                         number={index + 1}
                         position="right"
@@ -580,7 +517,7 @@ export default function ChannelTab(props: ChannelTabsProps & { index: number; })
                         isCompact={compact}
                         isHovered={isHovered}
                     />
-                )} */}
+                )}
             </div>
         </button>
 

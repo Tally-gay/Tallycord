@@ -12,9 +12,18 @@ on:
                 default: both
             webhook_url:
                 type: string
-                description: "Webhook URL that the report will be posted to. This will be
+                description:
+                    "Webhook URL that the report will be posted to. This will be
                     visible for everyone, so DO NOT pass sensitive webhooks like
                     discord webhook. This is meant to be used by Equibot."
+                required: false
+            repository:
+                type: string
+                description: repository to test patches on
+                required: false
+            ref:
+                type: string
+                description: "Git reference to test patches on. This can be a branch, tag, or commit SHA."
                 required: false
     schedule:
         #   # Every day at midnight
@@ -29,28 +38,31 @@ jobs:
         runs-on: ubuntu-latest
 
         steps:
-            - uses: actions/checkout@v6
+            - uses: actions/checkout@v7
               with:
-                  ref: ${{ github.event_name == 'schedule' && 'dev' || github.ref }}
+                  repository: ${{ inputs.pr_repo || github.repository }}
+                  ref: ${{ inputs.ref || (github.event_name == 'schedule' && 'dev' || github.ref) }}
 
-            - uses: oven-sh/setup-bun@v2
-
+            - name: Setup PNPM
+              uses: pnpm/setup@v2.1.0
               with:
-                  bun-version: latest
+                  runtime: node@v24
+                  require-lockfile: true
 
             - name: Install dependencies
               run: |
-                  bun install
+                  pnpm install --frozen-lockfile --prefer-offline
 
             - name: Build Equicord Reporter Version
-              run: bun run buildReporter
+              run: pnpm buildReporter
 
             - name: Run Reporter
               timeout-minutes: 10
               run: |
+                  export PATH="$PWD/node_modules/.bin:$PATH"
                   export CHROMIUM_BIN=/usr/bin/google-chrome
 
-                  bun build scripts/generateReport.ts --outfile dist/report.mjs --target bun
+                  esbuild scripts/generateReport.ts > dist/report.mjs
 
                   stable_output_file=$(mktemp)
                   canary_output_file=$(mktemp)
@@ -63,20 +75,20 @@ jobs:
                   fi
 
                   if [[ "$branch" = "both" || "$branch" = "stable" ]]; then
-                    bun run dist/report.mjs > "$stable_output_file" &
+                    node dist/report.mjs > "$stable_output_file" &
                     pids+=" $!"
                   fi
 
                   if [[ "$branch" = "both" || "$branch" = "canary" ]]; then
-                    USE_CANARY=true bun run dist/report.mjs > "$canary_output_file" &
+                    USE_CANARY=true node dist/report.mjs > "$canary_output_file" &
                     pids+=" $!"
                   fi
 
                   exit_code=0
                   for pid in $pids; do
-                    if ! wait "$pid"; then
-                      exit_code=1
-                    fi
+                      if ! wait "$pid"; then
+                        exit_code=1
+                      fi
                   done
 
                   cat "$stable_output_file" "$canary_output_file" >> $GITHUB_STEP_SUMMARY

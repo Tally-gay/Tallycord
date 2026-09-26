@@ -18,17 +18,21 @@
 
 // @ts-check
 
+import "../suppressExperimentalWarnings.js";
+import "../checkNodeVersion.js";
+
+import { exec, execSync } from "child_process";
 import esbuild, { build, context } from "esbuild";
-import { existsSync } from "fs";
-import { readdir } from "fs/promises";
+import { constants as FsConstants, readFileSync } from "fs";
+import { access, readdir, readFile } from "fs/promises";
 import { minify as minifyHtml } from "html-minifier-terser";
-import { join, relative, resolve } from "path";
+import { dirname, join, relative, resolve } from "path";
+import { fileURLToPath } from "url";
+import { promisify } from "util";
 
 import { getPluginTarget } from "../utils.mjs";
 
-const __dirname = import.meta.dir;
-
-const PackageJSON = await Bun.file(join(__dirname, "../../package.json")).json();
+const PackageJSON = JSON.parse(readFileSync(join(dirname(fileURLToPath(import.meta.url)), "../../package.json"), "utf-8"));
 
 export const VERSION = PackageJSON.version;
 // https://reproducible-builds.org/docs/source-date-epoch/
@@ -44,7 +48,7 @@ if (!IS_COMPANION_TEST && process.argv.includes("--companion-test"))
     console.error("--companion-test must be run with --reporter for any effect");
 
 export const IS_UPDATER_DISABLED = process.argv.includes("--disable-updater");
-export const gitHash = process.env.EQUICORD_HASH || new TextDecoder().decode(Bun.spawnSync(["git", "rev-parse", "HEAD"]).stdout).trim();
+export const gitHash = process.env.EQUICORD_HASH || execSync("git rev-parse HEAD", { encoding: "utf-8" }).trim();
 
 export const banner = {
     js: `
@@ -92,11 +96,14 @@ const PluginDefinitionNameMatcher = /definePlugin\(\{\s*(["'])?name\1:\s*(["'`])
 export async function resolvePluginName(base, dirent) {
     const fullPath = join(base, dirent.name);
     const content = dirent.isFile()
-        ? await Bun.file(fullPath).text()
+        ? await readFile(fullPath, "utf-8")
         : await (async () => {
             for (const file of ["index.ts", "index.tsx"]) {
-                const f = Bun.file(join(fullPath, file));
-                if (await f.exists()) return await f.text();
+                try {
+                    return await readFile(join(fullPath, file), "utf-8");
+                } catch {
+                    continue;
+                }
             }
             throw new Error(`Invalid plugin ${fullPath}: could not resolve entry point`);
         })();
@@ -107,8 +114,10 @@ export async function resolvePluginName(base, dirent) {
         })();
 }
 
-export function exists(path) {
-    return Bun.file(path).exists().then(e => e || existsSync(path));
+export async function exists(path) {
+    return await access(path, FsConstants.F_OK)
+        .then(() => true)
+        .catch(() => false);
 }
 
 // https://github.com/evanw/esbuild/issues/619#issuecomment-751995294
@@ -162,6 +171,7 @@ export const globPlugins = kind => ({
                         const excluded =
                             (target === "dev" && !IS_DEV) ||
                             (target === "web" && kind === "discordDesktop") ||
+                            (target === "browser" && kind !== "web") ||
                             (target === "desktop" && kind === "web") ||
                             (target === "discordDesktop" && kind !== "discordDesktop") ||
                             (target === "vesktop" && kind !== "vesktop" && kind !== "equibop") ||
@@ -222,8 +232,8 @@ export const gitRemotePlugin = {
         build.onLoad({ filter, namespace: "git-remote" }, async () => {
             let remote = process.env.EQUICORD_REMOTE;
             if (!remote) {
-                const proc = Bun.spawn(["git", "remote", "get-url", "origin"], { stdout: "pipe" });
-                remote = (await new Response(proc.stdout).text()).trim()
+                const res = await promisify(exec)("git remote get-url origin", { encoding: "utf-8" });
+                remote = res.stdout.trim()
                     .replace("https://github.com/", "")
                     .replace("git@github.com:", "")
                     .replace(/.git$/, "");
@@ -255,18 +265,15 @@ export const fileUrlPlugin = {
             const minify = searchParams.has("minify");
             const noTrim = searchParams.get("trim") === "false";
 
+            const encoding = base64 ? "base64" : "utf-8";
+
             let content;
             if (!minify) {
-                if (base64) {
-                    const buf = Buffer.from(await Bun.file(path).arrayBuffer());
-                    content = buf.toString("base64");
-                } else {
-                    content = await Bun.file(path).text();
-                    if (!noTrim) content = content.trimEnd();
-                }
+                content = await readFile(path, encoding);
+                if (!noTrim) content = content.trimEnd();
             } else {
                 if (path.endsWith(".html")) {
-                    content = await minifyHtml(await Bun.file(path).text(), {
+                    content = await minifyHtml(await readFile(path, "utf-8"), {
                         collapseWhitespace: true,
                         removeComments: true,
                         minifyCSS: true,
@@ -311,7 +318,7 @@ export const banImportPlugin = (filter, message) => ({
     }
 });
 
-const styleModule = await Bun.file(join(__dirname, "module/style.js")).text();
+const styleModule = readFileSync(join(dirname(fileURLToPath(import.meta.url)), "module/style.js"), "utf-8");
 
 /**
  * @type {import("esbuild").Plugin}
@@ -324,7 +331,7 @@ export const stylePlugin = {
             namespace: "managed-style",
         }));
         onLoad({ filter: /\.css$/, namespace: "managed-style" }, async ({ path }) => {
-            const css = await Bun.file(path).text();
+            const css = await readFile(path, "utf-8");
             const name = relative(process.cwd(), path).replaceAll("\\", "/");
 
             return {
@@ -349,7 +356,7 @@ export const commonOpts = {
     banner,
     plugins: [fileUrlPlugin, gitHashPlugin, gitRemotePlugin, stylePlugin],
     external: ["~plugins", "~git-hash", "~git-remote", "/assets/*"],
-    inject: [join(__dirname, "inject/react.mjs")],
+    inject: [join(dirname(fileURLToPath(import.meta.url)), "inject/react.mjs")],
     jsx: "transform",
     jsxFactory: "VencordCreateElement",
     jsxFragment: "VencordFragment"

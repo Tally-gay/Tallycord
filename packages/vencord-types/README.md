@@ -7,5 +7,5 @@ npm i @equicord/types
 
 yarn add @equicord/types
 
-bun add @vencord/types
+pnpm add @equicord/types
 ```

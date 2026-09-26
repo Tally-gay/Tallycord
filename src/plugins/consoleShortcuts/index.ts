@@ -22,7 +22,6 @@ import { getCurrentChannel, getCurrentGuild } from "@utils/discord";
 import { runtimeHashMessageKey } from "@utils/intlHash";
 import { SYM_LAZY_CACHED, SYM_LAZY_GET } from "@utils/lazy";
 import { sleep } from "@utils/misc";
-import { ModalAPI } from "@utils/modal";
 import { relaunch } from "@utils/native";
 import { canonicalizeMatch, canonicalizeReplace, canonicalizeReplacement } from "@utils/patches";
 import definePlugin, { PluginNative, StartAt } from "@utils/types";
@@ -36,9 +35,9 @@ const DESKTOP_ONLY = (f: string) => () => {
 };
 
 const switchBranch = (branch: string) => () => {
-    if (!IS_VESKTOP && !IS_EQUIBOP) throw new Error("This function only works on vesktop and tallytop.");
+    if (!IS_VESKTOP && !IS_EQUIBOP) throw new Error("This function only works on vesktop and equibop.");
 
-    const target = IS_VESKTOP ? Vesktop : Tallytop;
+    const target = IS_VESKTOP ? Vesktop : Equibop;
     if (target.Settings.store.discordBranch === branch) throw new Error(`Already on ${branch}.`);
     target.Settings.store.discordBranch = branch;
     VesktopNative.app.relaunch();
@@ -177,8 +176,8 @@ function makeShortcuts() {
         me: { getter: () => Common.UserStore.getCurrentUser(), preload: false },
         meId: { getter: () => Common.UserStore.getCurrentUser().id, preload: false },
         messages: { getter: () => Common.MessageStore.getMessages(Common.SelectedChannelStore.getChannelId()), preload: false },
-        openModal: { getter: () => ModalAPI.openModal },
-        openModalLazy: { getter: () => ModalAPI.openModalLazy },
+        openModal: { getter: () => Common.openModal },
+        openModalLazy: { getter: () => Common.openModalLazy },
 
         Stores: { getter: () => Object.fromEntries(Webpack.fluxStores) },
 
@@ -192,9 +191,9 @@ function makeShortcuts() {
         },
         switchBranch,
         ...IS_EQUIBOP ? {
-            tallytopStable: switchBranch("stable"),
-            tallytopCanary: switchBranch("canary"),
-            tallytopPtb: switchBranch("ptb"),
+            equibopStable: switchBranch("stable"),
+            equibopCanary: switchBranch("canary"),
+            equibopPtb: switchBranch("ptb"),
         } : {},
     };
 }

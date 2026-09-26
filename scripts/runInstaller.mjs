@@ -16,32 +16,43 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { mkdirSync } from "fs";
-import { join } from "path";
+import "./checkNodeVersion.js";
+
+import { execFileSync, execSync } from "child_process";
+import { createWriteStream, existsSync, mkdirSync, readFileSync, writeFileSync, cpSync, rmSync } from "fs";
+import { dirname, join } from "path";
+import { Readable } from "stream";
+import { finished } from "stream/promises";
+import { fileURLToPath } from "url";
 
 const BASE_URL = "https://github.com/Equicord/Equilotl/releases/latest/download/";
-const INSTALLER_PATH_DARWIN = "Equilotl.app/Contents/MacOS/Equilotl";
-const INSTALLER_APP_DARWIN = "Equilotl.app";
 
-const BASE_DIR = join(import.meta.dir, "..");
+const BASE_DIR = join(dirname(fileURLToPath(import.meta.url)), "..");
 const FILE_DIR = join(BASE_DIR, "dist", "Installer");
 const ETAG_FILE = join(FILE_DIR, "etag.txt");
+
+function byArch(files) {
+    return files[process.arch] ?? files.default;
+}
 
 function getFilename() {
     switch (process.platform) {
         case "win32":
-            return "EquilotlCli.exe";
+            return byArch({
+                arm64: "EquilotlCli-arm64.exe",
+                default: "EquilotlCli.exe"
+            });
         case "darwin":
-            switch (process.arch) {
-                case "x64":
-                    return "Equilotl-darwin-x64.zip";
-                case "arm64":
-                    return "Equilotl-darwin-arm64.zip";
-                default:
-                    throw new Error("Unsupported macOS architecture: " + process.arch);
-            }
+            return byArch({
+                x64: "EquilotlCli-x64",
+                arm64: "EquilotlCli-arm64",
+                default: "EquilotlCli-universal"
+            });
         case "linux":
-            return "EquilotlCli-linux";
+            return byArch({
+                arm64: "EquilotlCli-linux-arm64",
+                default: "EquilotlCli-Linux"
+            });
         default:
             throw new Error("Unsupported platform: " + process.platform);
     }
@@ -53,17 +64,9 @@ async function ensureBinary() {
 
     mkdirSync(FILE_DIR, { recursive: true });
 
-    const downloadName = join(FILE_DIR, filename);
-    const outputFile = process.platform === "darwin"
-        ? join(FILE_DIR, INSTALLER_PATH_DARWIN)
-        : downloadName;
-    const outputApp = process.platform === "darwin"
-        ? join(FILE_DIR, INSTALLER_APP_DARWIN)
-        : null;
-
-    const etagFile = Bun.file(ETAG_FILE);
-    const etag = await Bun.file(outputFile).exists() && await etagFile.exists()
-        ? await etagFile.text()
+    const outputFile = join(FILE_DIR, filename);
+    const etag = existsSync(outputFile) && existsSync(ETAG_FILE)
+        ? readFileSync(ETAG_FILE, "utf-8")
         : null;
 
     const res = await fetch(BASE_URL + filename, {
@@ -80,32 +83,13 @@ async function ensureBinary() {
     if (!res.ok)
         throw new Error(`Failed to download installer: ${res.status} ${res.statusText}`);
 
-    await Bun.write(ETAG_FILE, res.headers.get("etag"));
+    writeFileSync(ETAG_FILE, res.headers.get("etag"));
 
-    if (process.platform === "darwin") {
-        console.log("Saving zip...");
-        await Bun.write(downloadName, new Uint8Array(await res.arrayBuffer()));
-
-        console.log("Unzipping app bundle...");
-        Bun.spawnSync(["ditto", "-x", "-k", downloadName, FILE_DIR], { stdio: ["inherit", "inherit", "inherit"] });
-
-        console.log("Clearing quarantine from installer app (this is required to run it)");
-        console.log("xattr might error, that's okay");
-
-        const logAndRun = args => {
-            console.log("Running", args.join(" "));
-            try {
-                Bun.spawnSync(args, { stdio: ["inherit", "inherit", "inherit"] });
-            } catch { }
-        };
-        logAndRun(["sudo", "xattr", "-dr", "com.apple.quarantine", outputApp]);
-    } else {
-        await Bun.write(outputFile, new Uint8Array(await res.arrayBuffer()));
-        if (process.platform !== "win32") {
-            const { chmodSync } = await import("fs");
-            chmodSync(outputFile, 0o755);
-        }
-    }
+    const body = Readable.fromWeb(res.body);
+    await finished(body.pipe(createWriteStream(outputFile, {
+        mode: 0o755,
+        autoClose: true
+    })));
 
     console.log("Finished downloading!");
 
@@ -118,18 +102,19 @@ const installerBin = await ensureBinary();
 
 console.log("Now running Installer...");
 
-const args = process.argv.slice(2);
+const argStart = process.argv.indexOf("--");
+const args = argStart === -1 ? [] : process.argv.slice(argStart + 1);
 
-const result = Bun.spawnSync([installerBin, ...args], {
-    stdio: ["inherit", "inherit", "inherit"],
-    env: {
-        ...process.env,
-        EQUICORD_USER_DATA_DIR: BASE_DIR,
-        EQUICORD_DIRECTORY: join(BASE_DIR, "dist/desktop"),
-        EQUICORD_DEV_INSTALL: "1"
-    }
-});
-
-if (!result.success) {
+try {
+    execFileSync(installerBin, args, {
+        stdio: "inherit",
+        env: {
+            ...process.env,
+            EQUICORD_USER_DATA_DIR: BASE_DIR,
+            EQUICORD_DIRECTORY: join(BASE_DIR, "dist/desktop"),
+            EQUICORD_DEV_INSTALL: "1"
+        }
+    });
+} catch {
     console.error("Something went wrong. Please check the logs above.");
 }

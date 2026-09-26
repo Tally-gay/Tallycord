@@ -8,20 +8,26 @@ on:
         branches:
             - main
             - dev
+
 jobs:
     Test:
         name: Test
         runs-on: ubuntu-latest
+
         steps:
-            - uses: actions/checkout@v4
-            - uses: oven-sh/setup-bun@v2
+            - uses: actions/checkout@v7
+
+            - name: Setup PNPM
+              uses: pnpm/setup@v2.1.0
               with:
-                  bun-version: latest
-            - name: Install dependencies
-              run: bun install
+                  runtime: node@v24
+                  require-lockfile: true
+
             - name: Lint & Test if desktop version compiles
-              run: bun run test
+              run: pnpm test
+
             - name: Test if web version compiles
-              run: bun run buildWeb
+              run: pnpm buildWeb
+
             - name: Test if plugin structure is valid
-              run: bun run generatePluginJson
+              run: pnpm generatePluginJson

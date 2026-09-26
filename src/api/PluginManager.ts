@@ -32,13 +32,12 @@ import { traceFunction } from "@debug/Tracer";
 import { Logger } from "@utils/Logger";
 import { onlyOnce } from "@utils/onlyOnce";
 import { canonicalizeFind, canonicalizeReplacement } from "@utils/patches";
-import definePlugin, { Patch, Plugin, PluginDef, ReporterTestable, StartAt } from "@utils/types";
-import { DefinedSettings, PluginSettingDef, } from "@utils/types";
+import { DefinedSettings, Patch, Plugin, PluginDef, PluginSettingDef, ReporterTestable, StartAt } from "@utils/types";
 import { FluxEvents } from "@vencord/discord-types";
 import { FluxDispatcher } from "@webpack/common";
 import { patches } from "@webpack/patcher";
 
-import Plugins, { PluginMeta } from "~plugins";
+import Plugins from "~plugins";
 export { Plugins as plugins };
 
 import { addAudioProcessor, removeAudioProcessor } from "./AudioPlayer";
@@ -48,7 +47,6 @@ import { addProfileSection, removeProfileSection } from "./ProfileSections";
 import { addUserAreaButton, removeUserAreaButton } from "./UserArea";
 
 const logger = new Logger("PluginManager", "#a6d189");
-const injector = new Logger("PluginInjector", "#f27171");
 
 export const PMLogger = logger;
 
@@ -92,7 +90,7 @@ export function hasAnyVisibleSettings({ settings }: Plugin) {
 export function addPatch(newPatch: Omit<Patch, "plugin">, pluginName: string, pluginPath = `Vencord.Plugins.plugins[${JSON.stringify(pluginName)}]`) {
     // TODO: this causes crashes
     if (pluginName === "Vesktop" && newPatch.find === ".STREAMING_AUTO_STREAMER_MODE,") return;
-    if (pluginName === "Tallytop" && newPatch.find === ".STREAMING_AUTO_STREAMER_MODE,") return;
+    if (pluginName === "Equibop" && newPatch.find === ".STREAMING_AUTO_STREAMER_MODE,") return;
 
     const patch = newPatch as Patch;
     patch.plugin = pluginName;
@@ -132,43 +130,7 @@ export function pluginRequiresRestart(p: Plugin) {
     return p.requiresRestart !== false && (p.requiresRestart || !!p.patches?.length);
 }
 
-const evilPlugin: Plugin = ({
-    authors: [
-        { id: 1014588310036951120n, name: "EVIL TALLY" }
-    ],
-    description: "EVIL INJECTED PLUGIN!!",
-    name: "EVIL",
-    started: false,
-    start: () => {
-        console.log("hawwo!");
-    }
-});
-
-
-
-
-function injectPlugin(p: Plugin, pl: typeof Plugins, pm: typeof PluginMeta) {
-    pl[p.name] = p;
-
-    pm[p.name] = {
-        folderName: "runtime/injected", // literally just a lie
-        userPlugin: true
-    };
-    injector.log("Injected plugin", p.name);
-}
-
-let injected = false;
-function injectPlugins(pl: typeof Plugins, pm: typeof PluginMeta) {
-    if (injected) return;
-    injected = true;
-    injector.log("Injecting plugins...", pl, pm);
-    injectPlugin(evilPlugin, pl, pm);
-}
-
-
-
 export const startAllPlugins = traceFunction("startAllPlugins", function startAllPlugins(target: StartAt) {
-    injectPlugins(Plugins, PluginMeta);
     logger.info(`Starting plugins (stage ${target})`);
     for (const name in Plugins) {
         if (isPluginEnabled(name) && (!IS_REPORTER || isReporterTestable(Plugins[name], ReporterTestable.Start))) {

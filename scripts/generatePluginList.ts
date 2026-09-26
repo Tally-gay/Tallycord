@@ -16,12 +16,12 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { readdirSync } from "fs";
+import { readdirSync, writeFileSync } from "fs";
 import { getEntryPoint, isPluginFile, parseDevs, parseEquicordDevs, parseFile, PluginData } from "./utils";
 
 (async () => {
-    await parseDevs();
-    await parseEquicordDevs();
+    parseDevs();
+    parseEquicordDevs();
 
     const args = process.argv.slice(2);
 
@@ -56,7 +56,7 @@ import { getEntryPoint, isPluginFile, parseDevs, parseEquicordDevs, parseFile, P
     const data = JSON.stringify(plugins);
 
     if (outputPath) {
-        await Bun.write(outputPath, data);
+        writeFileSync(outputPath, data);
     } else {
         console.log(data);
     }

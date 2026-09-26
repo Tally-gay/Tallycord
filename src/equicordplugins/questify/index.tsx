@@ -4,8 +4,6 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-import "./styles.css";
-
 import { playAudio } from "@api/AudioPlayer";
 import { addServerListElement, removeServerListElement, ServerListRenderPosition } from "@api/ServerList";
 import { PlainSettings, Settings } from "@api/Settings";
@@ -22,15 +20,17 @@ import { QuestTileContextMenu } from "./components/questTileContextMenu";
 import { getQuestifySettings } from "./settings/access";
 import { resetQuestsToResume, startAutoFetchingQuests, stopAutoFetchingQuests } from "./settings/fetching";
 import { validateIgnoredQuests } from "./settings/ignoredQuests";
+import { showPendingQuestifyNotice } from "./settings/notices";
 import { rerenderQuests, useQuestRerender } from "./settings/rerender";
 import { disposeRestartTracking, initializeRestartTracking, promptToRestartIfDirty, setRestartDirty } from "./settings/restartTracking";
 import { settings } from "./settings/store";
 import { getSettingsModalOpen, initialQuestDataFetched, setInitialQuestDataFetched, setSettingsModalOpen } from "./state";
+import managedStyle from "./styles.css?managed";
 import { canAutoCompleteQuest, getActiveAutoCompletes, getQuestAutoCompleteProgress, getQuestButtonProps, getQuestPanelSubtitleText, hasEnabledAutoCompleteQuestTypes, processQuestForAutoComplete, resumeInterruptedAutoCompletes, setHeartbeatStackTracePatchSucceeded, setVideoProgressStackTracePatchSucceeded, stopAllAutoCompletes, stopAutoCompletesForRunningGames, stopQuestAutoComplete } from "./utils/completion";
 import { canOpenDevToolsWindow, fetchAndDispatchQuests, openDevToolsWindow, snakeToCamel } from "./utils/fetching";
 import { normalizeQuestName } from "./utils/filtering";
 import { notifyQuestCompletion, QL } from "./utils/logging";
-import { getQuestPanelOverride, getQuestPanelPercentComplete, shouldForceQuestPanelVisible } from "./utils/questState";
+import { getQuestEmbedProgress, getQuestPanelOverride, getQuestPanelPercentComplete, shouldForceQuestPanelVisible } from "./utils/questState";
 import { getLastFilterChoices, getLastSortChoice, getQuestTileClasses, getQuestTileStyle, setLastFilterChoices, setLastSortChoice, shouldPreloadQuestAssets, sortQuests } from "./utils/questTiles";
 import { formatLowerBadge, QUEST_PAGE } from "./utils/ui";
 
@@ -96,6 +96,10 @@ function enrolledIncompleteButton(args: { quest: Quest, size: string; }): JSX.El
     );
 }
 
+function wrapOrbsBalance(balance: String): JSX.Element {
+    return (<span style={{ fontSize: "90%" }}>{balance}</span>);
+}
+
 export default definePlugin({
     name: "Questify",
     description: "Enhance specific Quest features, disable annoyances, or completely remove Quests.",
@@ -103,6 +107,7 @@ export default definePlugin({
     authors: [EquicordDevs.Etorix],
     dependencies: ["AudioPlayerAPI", "ServerListAPI"],
     startAt: StartAt.Init, // Needed in order to beat Read All Messages to inserting above the server list.
+    managedStyle,
     settings,
 
     canOpenDevToolsWindow,
@@ -114,6 +119,7 @@ export default definePlugin({
     getLastFilterChoices,
     getLastSortChoice,
     getQuestAutoCompleteProgress,
+    getQuestEmbedProgress,
     getQuestButtonProps,
     getQuestPanelOverride,
     getQuestPanelPercentComplete,
@@ -135,6 +141,7 @@ export default definePlugin({
     sortQuests,
     stopQuestAutoComplete,
     useQuestRerender,
+    wrapOrbsBalance,
 
     patches: [
         {
@@ -169,7 +176,7 @@ export default definePlugin({
             find: '("ActivityStatus"),',
             predicate: () => getQuestifySettings().disableQuestsEverything || getQuestifySettings().disableMembersListPromo,
             replacement: {
-                match: /(,hasQuest:)(?=\i=!1)/,
+                match: /,hasQuest:(?=\i=!1)/,
                 replace: ",questifyInvalid1:"
             }
         },
@@ -197,11 +204,11 @@ export default definePlugin({
         },
         {
             // Hides Quests tab in the DMs tab list.
-            find: ".QUEST_HOME):",
+            find: '.QUEST_HOME)},"quests")',
             predicate: () => getQuestifySettings().disableQuestsEverything,
             replacement: [
                 {
-                    match: /(?<="family-center"\):null,)/,
+                    match: /(?<="family-center"\)(?:&&undefined)?:null,)/,
                     replace: "null&&"
                 }
             ]
@@ -211,10 +218,9 @@ export default definePlugin({
             find: "QUEST_HOME)},[]),",
             predicate: () => !getQuestifySettings().disableQuestsEverything && getQuestifySettings().disableSponsoredBanner,
             replacement: {
-                match: /(?<=(\i),isLoading:(\i)}=\(0,\i.\i\)\(\i\);)/,
-                replace: "if(true){$1=null;$2=false;};"
+                match: /(?<=,{questHomeHero:(\i),isLoading:(\i),confirmedEmpty:(\i)}=.{0,300}?ORBS_BALANCE_MENU}\)},\[\]\);)/,
+                replace: "$1=null;$2=false;$3=true;"
             }
-
         },
         {
             // Hides the Quest & Orbs badges on user profiles.
@@ -223,17 +229,17 @@ export default definePlugin({
             predicate: () => !getQuestifySettings().disableQuestsEverything && getQuestifySettings().disableOrbsAndQuestsBadges,
             replacement: [
                 {
-                    match: /(badges:\i)/,
+                    match: /(,{badges:\i)(?=,overflowCount:\i,displayProfile:\i)/,
                     replace: '$1.filter(badge=>!["quest_completed","orb_profile_badge"].includes(badge.id))',
                 }
             ]
         },
         {
             // Overrides the account panel Quest popup and progress display.
-            find: "QUESTS_BAR,questId",
+            find: "collapsed-with-rewards\":\"collapsed-without-rewards",
             predicate: () => getQuestifySettings().disableAccountPanelPromo || !getQuestifySettings().disableAccountPanelQuestProgress,
             replacement: {
-                match: /(?<=function\(\){)(let (\i)=\(0,\i.\i\)\(\);)/,
+                match: /(?<=function\(\)\{)(let (\i)=\(0,\i\.\i\)\(\)(?:,\i=\(0,\i\.\i\)\(.{0,55}?\))?;)(?=return null==\2(?:&&null!=\i)?\?)/,
                 replace: "void $self.useQuestRerender();$1$2=$self.getQuestPanelOverride($2);"
             }
         },
@@ -245,12 +251,12 @@ export default definePlugin({
             replacement: [
                 {
                     // QUESTS_FETCH_CURRENT_QUESTS_BEGIN
-                    match: /(?=if\(!\i.\i.isFetchingCurrentQuests\))/,
-                    replace: "return;"
+                    match: /(?<=if\(\i.\i.isFetchingCurrentQuests)/,
+                    replace: "||true"
                 },
                 {
                     // QUESTS_FETCH_QUEST_TO_DELIVER_BEGIN
-                    match: /(?=let.{0,150}QUESTS_FETCH_QUEST_TO_DELIVER_BEGIN)/,
+                    match: /(?=let \i=Date.now\(\);\i.recordQuestRequestAttempt.{0,50}QUESTS_FETCH_QUEST_TO_DELIVER_BEGIN)/,
                     replace: "return;"
                 }
             ]
@@ -260,7 +266,7 @@ export default definePlugin({
             find: ",{progressTextAnimation:",
             predicate: () => !getQuestifySettings().disableQuestsEverything,
             replacement: {
-                match: /(let{percentComplete:.{0,115}?children:\i}=)(\i)/,
+                match: /(let{percentComplete:.{0,115}?children:\i,useAltStyle:\i=!1}=)(\i)/,
                 replace: "const questifyProgress=$self.getQuestPanelPercentComplete({...$2,quest:$2.children?.props?.quest});$1Object.assign({},$2,questifyProgress??{})"
             }
         },
@@ -274,7 +280,7 @@ export default definePlugin({
             }
         },
         {
-            // Formats the Orbs balance on the Quests page with locale string formatting.
+            // Formats the Orbs balance in the default balance counter on the Quests page with locale string formatting.
             find: '("BalanceCounter")',
             predicate: () => !getQuestifySettings().disableQuestsEverything,
             replacement: [
@@ -289,20 +295,49 @@ export default definePlugin({
             ]
         },
         {
+            // Formats the Orbs balance in the balance popout on the Quests page with locale string formatting.
+            find: "PremiumTenureRewardsOrbsBalancePopover",
+            predicate: () => !getQuestifySettings().disableQuestsEverything,
+            replacement: [
+                {
+                    match: /(?<=children:)(\i\?\?0)/,
+                    replace: "$self.wrapOrbsBalance(($1).toLocaleString(undefined,{maximumFractionDigits:0}))"
+                }
+            ]
+        },
+        {
             // Removes stack traces from Quest auto-complete network actions and marks both patches as healthy.
             find: "NetworkActionNames.QUEST_VIDEO_PROGRESS,",
             group: true,
             predicate: () => !getQuestifySettings().disableQuestsEverything && hasEnabledAutoCompleteQuestTypes(),
             replacement: [
                 {
-                    match: /(async function \i\(\i,\i\)\{await \i\.\i\.post\(\{url:\i\.\i\.QUESTS_VIDEO_PROGRESS.{0,200}?stack_trace:)Error\(\)\.stack\?\?""/,
+                    match: /(async function \i\(\i,\i\)\{await \i\.\i\.post\(\{url:\i\.\i\.QUESTS_VIDEO_PROGRESS.{0,250}?stack_trace:)Error\(\)\.stack\?\?""/,
                     replace: '$self.setVideoProgressStackTracePatchSucceeded();$1""'
                 },
                 {
-                    match: /(async function \i\(\i\)\{let\{questId:\i,streamKey:\i.{0,350}?stack_trace:)Error\(\)\.stack\?\?""/,
+                    match: /(async function \i\(\i\)\{let\{questId:\i,streamKey:\i.{0,450}?stack_trace:)Error\(\)\.stack\?\?""/,
                     replace: '$self.setHeartbeatStackTracePatchSucceeded();$1""'
                 }
             ]
+        },
+        {
+            // Prevent Video Quests from pausing on lost focus.
+            find: "[QV] | Pausing video | playerState:",
+            predicate: () => !getQuestifySettings().disableQuestsEverything && getQuestifySettings().preventVideoQuestsPausing,
+            replacement: {
+                match: /(?<=setCaptionEnabled\),)({focused:)(\i)/,
+                replace: "$2=true,$1questifyFocused"
+            }
+        },
+        {
+            // Prevent Video Quests from pausing on lost focus.
+            find: ",listenForHlsErrors:!1",
+            predicate: () => !getQuestifySettings().disableQuestsEverything && getQuestifySettings().preventVideoQuestsPausing,
+            replacement: {
+                match: /(?<=pauseOnLostVisibility:)!\i/,
+                replace: "false",
+            }
         },
         {
             find: "QUEST_HOME)},[]),",
@@ -338,23 +373,23 @@ export default definePlugin({
             replacement: [
                 {
                     // Overwrite button props for UNENROLLED Quests.
-                    match: /(?<=onClick:(\(\)=>{.[^}]+}),text:(\i),icon:\i,fullWidth:!0)/,
+                    match: /(?<=,text:\i,icon:\i,iconPosition:\i,fullWidth:!0)(?=,"aria-disabled":\i\|\|void 0)/,
                     replace: ",...($self.getQuestButtonProps(arguments[0])??{})"
                 },
                 {
                     // Overwrite button props for ENROLLED/INCOMPLETE Quests.
-                    match: /(?<=let{quest:\i,taskType:\i,surface:\i.{0,150}?size:\i}=\i;return)(.{0,300}?taskType:\i,size:\i,analyticsCtxQuestContent:\i,analyticsCtxSourceQuestContent:\i}\))/,
-                    replace: " $self.enrolledIncompleteButton(arguments[0])||($1)"
+                    match: /(case \i\.\i\.(?:ENROLLED|INCOMPLETE):return)(?=\(0,\i\.jsx\)\(\i,\{quest:(\i),taskType:\i\.type,size:(\i),)/g,
+                    replace: "$1 $self.enrolledIncompleteButton({quest:$2,size:$3})||"
                 }
             ]
         },
         {
             // Overwrite button props for Quest bar.
-            find: "QUESTS_BAR,questId",
+            find: "collapsed-with-rewards\":\"collapsed-without-rewards",
             predicate: () => !getQuestifySettings().disableQuestsEverything && hasEnabledAutoCompleteQuestTypes(),
             replacement: {
                 match: /(?<=SELECT&&!\i&&!\i,(\i)=null;)(return )(\i\?\i=\(0,\i.\i\)\(\i,{quest:(\i))/,
-                replace: "const questifyButton=$self.enrolledIncompleteButton({quest:$4});$2questifyButton?$1=questifyButton:$3"
+                replace: "const questifyButton=$self.enrolledIncompleteButton({quest:$4,size:\"sm\"});$2questifyButton?$1=questifyButton:$3"
             }
         },
         {
@@ -362,59 +397,67 @@ export default definePlugin({
             find: "prevIsQuestAccepted:",
             predicate: () => !getQuestifySettings().disableQuestsEverything && !getQuestifySettings().disableAccountPanelQuestProgress,
             replacement: {
-                match: /(?<=isLoading:\i}=\(0,\i.\i\)\(\),\i=\i\.useContext\(\i\.\i\)\|\|\i&&)(\i)/,
+                match: /(?<=isLoading:\i}=\(0,\i\.\i\)\(\),\i=\i\.useContext\(\i\.\i\),\i=\i\|\|\i&&)(\i)/,
                 replace: "($1||$self.shouldForceQuestPanelVisible(arguments[0].quest))"
             }
         },
         {
-            find: ".rowIndex,trackGuildAndChannelMetadata",
+            find: "questNameHeadingId",
             group: true,
             predicate: () => !getQuestifySettings().disableQuestsEverything,
             replacement: [
                 {
-                    // Prevent the platform selector if the Quest is auto-completable.
-                    match: /(?<=ACCEPTED,\i=)(?=\i&&)/,
-                    replace: "!$self.canAutoCompleteQuest(arguments[0].quest)&&"
+                    // Prefer the auto-complete CTA over the console platform selector.
+                    match: /(\i===\i\.\i\.ENROLLED&&)(?=\(0,\i\.\i\)\((\i)\))/,
+                    replace: "$1!$self.canAutoCompleteQuest($2)&&"
                 },
                 {
-                    // Prevent the platform selector if the Quest is auto-completable.
-                    match: /(?<=SELECT,\i=)(?=\i&&)/,
-                    replace: "!$self.canAutoCompleteQuest(arguments[0].quest)&&"
-                },
-                // If this group becomes unruly due to Discord refactoring and is unfixable,
-                // the 2nd, 3rd, and 4th can be commented out in favor of just the 1st at the expense
-                // of not seeing CTA buttons on completed but unclaimed Quests. Also, questifyCanAutoComplete
-                // would need to be replaced as the 2nd patch defines it.
-                {
-                    // Always expose the CTA button when available instead of only for videos and activities.
-                    match: /(?<=wrap:!1,children:\[)(\i&&[^?]+)/,
-                    replace: "((!!arguments[0].quest.config.ctaConfig&&questifyCanAutoComplete)||($1))"
+                    // Prefer the auto-complete CTA over the desktop-only external-link row.
+                    match: /(\(\i===\i\.\i\.ENROLLED\|\|\i===\i\.\i\.INCOMPLETE\)&&)(?=\(0,\i\.\i\)\((\i)\))/,
+                    replace: "$1!$self.canAutoCompleteQuest($2)&&"
                 },
                 {
-                    // Let completed/claimed expired Quests with CTAs use the CTA-aware completed branch.
-                    match: /(return\()(?=\i.enabled&&\i===\i\.\i\.EXPIRED_CLAIMABLE&&\i\.\i\.has\(\i\))/,
-                    replace: "const questifyCanAutoComplete=$self.canAutoCompleteQuest(arguments[0].quest);$1(questifyCanAutoComplete?!arguments[0].quest.config.ctaConfig:true)&&"
+                    // Let completed/claimed Quests with CTAs use the generalized CTA row.
+                    match: /(\(\i===\i\.\i\.COMPLETED\|\|\i===\i\.\i\.CLAIMED\)&&)(?=\(0,\i\.\i\)\((\i)\))/,
+                    replace: "$1!$2.config.ctaConfig&&"
                 },
                 {
-                    // Let completed/claimed expired Quests with CTAs use the CTA-aware completed branch.
-                    match: /(?<=\):\i\?\i=)(\i)(?=\?\(0,\i\.jsx\)\(\i,\{quest:\i,sourceQuestContent:\i,onClick:\i,text:\i\}\):)/,
-                    replace: "((arguments[0].quest.config.ctaConfig&&questifyCanAutoComplete)||($1))"
-                },
-                {
-                    // Force the CTA-aware complete branch.
-                    match: /(?<=analyticsCtxQuestContentRowIndex:\i}\)}\):\i&&\i)(.{0,200}?fullWidth:!0}\)}\):)(\i.enabled.{0,50}?CLAIMED\)&&\i.\i.has\(\i\))(\?\i=)(\i)/,
-                    replace: "&&!questifyCanAutoComplete$1((questifyCanAutoComplete&&arguments[0].quest.config.ctaConfig&&arguments[0].quest.userStatus?.completedAt)||($2))$3(questifyCanAutoComplete||$4)"
+                    // Always expose the external CTA when the Quest has one configured.
+                    match: /(?<=wrap:!1,children:\[)(\i)(?=&&\(0,\i\.jsx\)\(\i,\{quest:(\i))/,
+                    replace: "($2.config.ctaConfig||$1)"
                 }
             ]
         },
         {
-            find: ".rowIndex,trackGuildAndChannelMetadata",
+            find: 'STEP_2_CLICKED_INTERNAL,"quest_embed_card_footer',
+            group: true,
+            predicate: () => !getQuestifySettings().disableQuestsEverything,
+            replacement: [
+                {
+                    // Subscribes each Quest message embed to Questify's manual rerender trigger.
+                    match: /(?<=function \i\(\i\){)(?=let\{quest:\i,location:\i,questContentPosition:\i,sourceQuestContent:)/,
+                    replace: "void $self.useQuestRerender();"
+                },
+                {
+                    // Overrides the progress tracking for Quest embeds.
+                    match: /(?<=\{completedRatio:\i,completedRatioDisplay:\i\}=)(\(0,\i\.\i\)\((\i)\))/,
+                    replace: "Object.assign({},$1,$self.getQuestEmbedProgress($2)??{})"
+                },
+                {
+                    // Adds Questify tile classes and inline CSS variables.
+                    match: /(?<=className:)(\i\(\)\(\i.\i,\i.\i\)(?=,onMouseEnter:\i))/,
+                    replace: "$self.getQuestTileClasses($1,arguments[0].quest),style:$self.getQuestTileStyle(arguments[0].quest)"
+                }
+            ]
+        },
+        {
+            find: "questNameHeadingId",
             group: true,
             predicate: () => !getQuestifySettings().disableQuestsEverything,
             replacement: [
                 {
                     // Subscribes each Quest tile to Questify's manual rerender trigger.
-                    match: /(?=return\(0,\i\.\i\)\("div",\{id:)/,
+                    match: /(?=return\(0,\i\.\i\)\("article",\{id:)/,
                     replace: "void $self.useQuestRerender();"
                 },
                 {
@@ -474,18 +517,18 @@ export default definePlugin({
                 },
                 {
                     // Bypasses Discord's memo cache while the Questify sort is active.
-                    match: /(if\(\i\.current\.length>0&&\i\.current===\i\.length&&\i\.current===\i\.sortMethod&&\i\.current===\i\.filters&&\i\.current===\i)(\)return \i\.current;)/,
-                    replace: "$1&&arguments[1]?.sortMethod!==\"questify\"$2"
+                    match: /(?<=if\()(?=\i\.current\.length>0&&\i\.current===)/,
+                    replace: "arguments[1]?.sortMethod!==\"questify\"&&"
                 },
                 {
                     // If we already applied Questify's sort, skip further sorting.
-                    match: /(?<=\{sortMethod:(\i).{0,750}?return )((\i).sort)/,
+                    match: /(?<=\{sortMethod:(\i).{0,800}?return )((\i).sort)/,
                     replace: "$1===\"questify\"?$3:$2"
                 },
                 {
                     // Recomputes Discord's Quest list memo when Questify settings or rerenders change.
-                    match: /(?<=\.id\);return \i\.current=\i,\i\.current=\i\.sortMethod,\i\.current=\i\.filters,\i\.current=\i\.length,\i\.current=\i,\i\},\[)(\i,\i,\i)(?=\]\)\))/,
-                    replace: "$1,questRerenderTrigger,questifySorted"
+                    match: /(?=]\)\),\i=\(\i=\i.useMemo\(\(\)=>\i.filter)/,
+                    replace: ",questRerenderTrigger,questifySorted"
                 }
             ]
         },
@@ -502,13 +545,24 @@ export default definePlugin({
             ]
         },
         {
+            // Allow non-shareable Quests to embed in chat and to have
+            // their share URLs copyable from the embed context menu.
+            find: "NOT_SHAREABLE}function",
+            group: true,
+            predicate: () => !getQuestifySettings().disableQuestsEverything,
+            replacement: {
+                match: /(?<=return )(?=\i.sharePolicy!==\i.\i.NOT_SHAREABLE)/,
+                replace: "true||"
+            }
+        },
+        {
             // Adds a maxDigits prop to the LowerBadge component which allows for not truncating, or for truncating at a specific threshold.
-            find: ".INTERACTIVE_TEXT_ACTIVE.css,shape",
+            find: ".BADGE_NOTIFICATION_BACKGROUND.css,disableColor",
             group: true,
             replacement: [
                 {
                     // Extracts the custom maxDigits prop.
-                    match: /(=>{let{count:\i,)/,
+                    match: /(\(\i\){let{count:\i,)/,
                     replace: "$1maxDigits,"
                 },
                 {
@@ -628,6 +682,8 @@ export default definePlugin({
         }
 
         onceReady.then(() => {
+            showPendingQuestifyNotice();
+
             if (!getQuestifySettings().disableQuestsEverything) {
                 startPerAccountTasks("PLUGIN_START");
             } else {

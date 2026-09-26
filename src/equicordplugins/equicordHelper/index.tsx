@@ -15,8 +15,8 @@ import { Devs, EquicordDevs, GUILD_ID, SUPPORT_CHANNEL_ID, SUPPORT_CHANNEL_IDS, 
 import { isAnyPluginDev } from "@utils/misc";
 import definePlugin, { OptionType } from "@utils/types";
 import { StandingState } from "@vencord/discord-types/enums";
-import { findByCodeLazy, findStoreLazy } from "@webpack";
-import { Alerts, ApplicationCommandIndexStore, NavigationRouter, React, SettingsRouter, UserStore, useStateFromStores } from "@webpack/common";
+import { findByCodeLazy } from "@webpack";
+import { Alerts, ApplicationCommandIndexStore, NavigationRouter, React, SafetyHubStore, SettingsRouter, UserGuildSettingsStore, UserStore, useStateFromStores, VoiceStateStore } from "@webpack/common";
 import { ComponentType } from "react";
 
 import { PluginButtons } from "./pluginButtons";
@@ -28,7 +28,6 @@ migratePluginToSettings(true, "EquicordHelper", "GuildTagSettings", "disableAdop
 
 let clicked = false;
 
-const SafetyHubStore = findStoreLazy("SafetyHubStore");
 const fetchSafetyHub: () => Promise<void> = findByCodeLazy("SAFETY_HUB_FETCH_START");
 
 const StandingConfig: Record<number, { label: string; hoverColor: string; Icon: ComponentType<any>; }> = {
@@ -56,7 +55,7 @@ function StandingButton() {
                 tooltip={config.label}
                 position="bottom"
                 icon={props => <config.Icon {...props} color={hovered ? config.hoverColor : "currentColor"} />}
-                onClick={() => SettingsRouter.openUserSettings("my_account_panel")}
+                onClick={() => SettingsRouter.openUserSettings("account_standing_panel")}
             />
         </div>
     );
@@ -132,6 +131,18 @@ const settings = definePluginSettings({
         description: "Forces JSON on gateway reconnect",
         restartNeeded: true,
         default: false,
+    },
+    hideVoiceIndicatorForMutedChannels: {
+        type: OptionType.BOOLEAN,
+        description: "Hide voice indicator in server list when only active channels are muted",
+        restartNeeded: true,
+        default: false,
+    },
+    noOnboarding: {
+        type: OptionType.BOOLEAN,
+        description: "Skips the server onboarding by gaslighting it",
+        restartNeeded: true,
+        default: false,
     }
 });
 
@@ -149,7 +160,9 @@ export default definePlugin({
         EquicordDevs.mart,
         EquicordDevs.omaw,
         Devs.Samwich,
-        Devs.AutumnVN
+        Devs.AutumnVN,
+        EquicordDevs.auggeeo,
+        EquicordDevs.secp192k1
     ],
     required: true,
     settings,
@@ -172,7 +185,7 @@ export default definePlugin({
                 }
             ]
         },
-        // Fix a race condition?
+        // Fix a race condition
         {
             find: ".completeOperation(",
             replacement: {
@@ -180,11 +193,11 @@ export default definePlugin({
                 replace: "$2,$1"
             }
         },
-        // catch if it cant open
+        // Catch IndexedDB if it fails to open
         {
             find: "discarding speculative database",
             replacement: {
-                match: /await (\i)\((\i)\)(?=;.{0,15}this\.databases)/,
+                match: /await \i\(\i\)(?=;.{0,15}this\.databases)/,
                 replace: "$&.catch(()=>null)"
             }
         },
@@ -263,15 +276,6 @@ export default definePlugin({
         },
         // Removes Modal Animation
         {
-            find: 'backdropFilter:"blur(0px)"',
-            predicate: () => settings.store.noModalAnimation,
-            replacement: {
-                match: /\?0:200/,
-                replace: "?0:0",
-            }
-        },
-        // Removes Modal Animation
-        {
             find: '="ABOVE"',
             predicate: () => settings.store.noModalAnimation,
             replacement: {
@@ -326,6 +330,58 @@ export default definePlugin({
             ],
             predicate: () => Settings.winNativeTitleBar,
         },
+        {
+            find: "DirectMessage: getSpringConfigs()",
+            replacement: [
+                {
+                    match: /("data-drop-hovering".{0,100}selected:(?:\i|!0),upperBadge:)(\i)(?=,lowerBadge:\i)/g,
+                    replace: "$1$self.hasUnmutedVoiceChannel(arguments[0]?.guild?.id)?$2:null"
+                },
+                {
+                    match: /return (\i)\.type===\i\.\i\.GUILD_VOICE/,
+                    replace: "$&&&!$self.isChannelMuted($1?.guildId,$1?.id)"
+                },
+                {
+                    match: /\.afkChannelId\).{0,80}.filter\((\i)=>\i\.type===\i\.\i\.VOICE/,
+                    replace: "$&&&!$self.isChannelMuted($1?.guildId,$1?.channelId)"
+                },
+                {
+                    match: /\.getAllApplicationStreams\(\).filter\((\i)=>\i\.guildId===\i/,
+                    replace: "$&&&!$self.isChannelMuted($1?.guildId,$1?.channelId)"
+                },
+                {
+                    match: /\.getEmbeddedActivitiesForGuild\((\i)\)(?=.flatMap\(\i=>)/,
+                    replace: "$&.filter(e=>!$self.isChannelMuted($1?.guildId,e?.channelId))"
+                }
+            ],
+            predicate: () => settings.store.hideVoiceIndicatorForMutedChannels,
+        },
+        {
+            find: 'type:"GUILD_ONBOARDING_PROMPTS_FETCH_START"',
+            replacement: {
+                match: /(?<="GUILD_ONBOARDING_PROMPTS_FETCH_SUCCESS",guildId:\i,\.\.\.\i)(?=\})/,
+                replace: ",enabled:!1"
+            },
+            predicate: () => settings.store.noOnboarding
+        },
+        // Add opening profile functionality to some connections
+        {
+            find: "getPlatformUserUrl:",
+            replacement: [
+                {
+                    match: /name:("(?:Xbox|Epic Games)").{0,180}enabled:!0/g,
+                    replace: "$&,getPlatformUserUrl:e=>$self.getPlatformUrl($1, e)"
+                }
+            ]
+        },
+        // gif-picker context menu doesnt get full context so give it
+        {
+            find: "renderEmptyFavorite",
+            replacement: {
+                match: /(?<=handleContextMenu.{0,150})(?=link:(\i)\.url)/,
+                replace: "...$1,"
+            }
+        }
     ],
     renderMessageAccessory(props) {
         return (
@@ -384,6 +440,30 @@ export default definePlugin({
     stop() {
         if (settings.store.noBulletPoints) {
             removeMessagePreSendListener(listener);
+        }
+    },
+    isChannelMuted(guildId: string, channelId: string) {
+        const currentUserVoiceState = VoiceStateStore.getVoiceStateForUser(UserStore.getCurrentUser()?.id);
+        if (currentUserVoiceState?.channelId === channelId) return false;
+        return UserGuildSettingsStore.isChannelMuted(guildId, channelId);
+    },
+    hasUnmutedVoiceChannel(guildId: string) {
+        const voiceStates = VoiceStateStore.getVoiceStates(guildId);
+        const currentUserVoiceState = VoiceStateStore.getVoiceStateForUser(UserStore.getCurrentUser()?.id);
+
+        return Object.values(voiceStates ?? {}).some(voiceState =>
+            voiceState?.channelId === currentUserVoiceState?.channelId ||
+            !UserGuildSettingsStore.isChannelMuted(guildId, voiceState?.channelId!)
+        );
+    },
+    getPlatformUrl(platform, args) {
+        switch (platform) {
+            case "Xbox":
+                return `https://www.xbox.com/play/user/${encodeURIComponent(args.name)}`;
+            case "Epic Games":
+                return `https://store.epicgames.com/u/${encodeURIComponent(args.id)}`;
+            default:
+                return null;
         }
     }
 });
