@@ -37,7 +37,7 @@ import { FluxEvents } from "@vencord/discord-types";
 import { FluxDispatcher } from "@webpack/common";
 import { patches } from "@webpack/patcher";
 
-import Plugins from "~plugins";
+import Plugins, { PluginMeta } from "~plugins";
 export { Plugins as plugins };
 
 import { addAudioProcessor, removeAudioProcessor } from "./AudioPlayer";
@@ -49,6 +49,7 @@ import { addUserAreaButton, removeUserAreaButton } from "./UserArea";
 const logger = new Logger("PluginManager", "#a6d189");
 
 export const PMLogger = logger;
+const injector = new Logger("PluginInjector", "#f27171");
 
 /** Whether we have subscribed to flux events of all the enabled plugins when FluxDispatcher was ready */
 let enabledPluginsSubscribedFlux = false;
@@ -130,7 +131,38 @@ export function pluginRequiresRestart(p: Plugin) {
     return p.requiresRestart !== false && (p.requiresRestart || !!p.patches?.length);
 }
 
+const evilPlugin: Plugin = ({
+    authors: [
+        { id: 1014588310036951120n, name: "EVIL TALLY" }
+    ],
+    description: "EVIL INJECTED PLUGIN!!",
+    name: "EVIL",
+    started: false,
+    start: () => {
+        console.log("hawwo!");
+    }
+});
+
+function injectPlugin(p: Plugin, pl: typeof Plugins, pm: typeof PluginMeta) {
+    pl[p.name] = p;
+
+    PluginMeta[p.name] = {
+        folderName: "runtime/injected", // literally just a lie
+        userPlugin: true
+    };
+    injector.log("Injected plugin", p.name);
+}
+
+let injected = false;
+function injectPlugins(pl: typeof Plugins, pm: typeof PluginMeta) {
+    if (injected) return;
+    injected = true;
+    injector.log("Injecting plugins...", pl, pm);
+    injectPlugin(evilPlugin, pl, pm);
+}
+
 export const startAllPlugins = traceFunction("startAllPlugins", function startAllPlugins(target: StartAt) {
+    injectPlugins(Plugins, PluginMeta);
     logger.info(`Starting plugins (stage ${target})`);
     for (const name in Plugins) {
         if (isPluginEnabled(name) && (!IS_REPORTER || isReporterTestable(Plugins[name], ReporterTestable.Start))) {
