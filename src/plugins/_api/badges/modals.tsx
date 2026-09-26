@@ -175,3 +175,47 @@ export function EquicordTranslatorModal() {
         </ErrorBoundary>
     ));
 }
+
+export function TallycordBadgeModal(badge: Record<"tooltip" | "badge", string>) {
+    openModal(props => (
+        <ErrorBoundary noop onError={() => props.onClose()}>
+            <Modal
+                {...props}
+                title={
+                    <Heading
+                        tag="h2"
+                        style={{
+                            width: "100%",
+                            textAlign: "center",
+                            margin: 0
+                        }}
+                    >
+                        <Flex justifyContent="center" alignItems="center" gap="0.5em">
+                            <Heart />
+                            Tallycord Special
+                        </Flex>
+                    </Heading>
+                }
+            >
+                <div>
+                    <Flex flexDirection="column" gap="0.5em" justifyContent="center" alignItems="center">
+                        <img
+                            role="presentation"
+                            src={badge.badge}
+                            alt=""
+                            style={{ margin: "auto", width: "12rem", height: "12rem" }}
+                        />
+                        <Paragraph>
+                            {badge.tooltip}
+                        </Paragraph>
+                    </Flex>
+                    <div style={{ padding: "1em" }}>
+                        <Paragraph>
+                            This Badge is a special thing for ppl i (tally) reeaalllyy care about :3
+                        </Paragraph>
+                    </div>
+                </div>
+            </Modal>
+        </ErrorBoundary>
+    ));
+}
