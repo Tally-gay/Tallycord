@@ -187,7 +187,7 @@ export default definePlugin({
     name: "LastFMRichPresence",
     description: "Little plugin for Last.fm rich presence",
     tags: ["Activity", "Media"],
-    authors: [Devs.dzshn, Devs.RuiNtD, Devs.blahajZip, Devs.archeruwu],
+    authors: [Devs.RuiNtD, Devs.blahajZip, Devs.archeruwu],
 
     settings,
 
