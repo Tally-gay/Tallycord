@@ -46,7 +46,7 @@ if (!IS_VANILLA) {
 
     /*
      * re-apply the patch when discord ships a new host version. skipped
-     * on vesktop and equibop because they manage their own updates.
+     * on vesktop and tallytop because they manage their own updates.
      */
     if (!IS_VESKTOP && !IS_EQUIBOP) {
         try {

@@ -40,27 +40,27 @@ interface CommonProps {
     repoPending: boolean;
 }
 
-function EquibopSection() {
+function TallytopSection() {
     if (!IS_EQUIBOP) return null;
 
-    const [isEquibopOutdated] = useAwaiter<boolean>(VesktopNative.app.isOutdated, { fallbackValue: false });
+    const [isTallytopOutdated] = useAwaiter<boolean>(VesktopNative.app.isOutdated, { fallbackValue: false });
 
     return (
         <Flex className={Margins.bottom20} flexDirection="column" gap="1em">
             <Card variant="brand">
-                <HeadingSecondary>Equibop & Equicord</HeadingSecondary>
-                <Paragraph>Equibop and Equicord are two separate things. This updater is for Equicord.</Paragraph>
+                <HeadingSecondary>Tallytop & Equicord</HeadingSecondary>
+                <Paragraph>Tallytop and Equicord are two separate things. This updater is for Equicord.</Paragraph>
                 <Paragraph className={Margins.top8}>
-                    You receive separate popups for Equibop updates. You can also manually update by installing the <Link href="https://equibop.org/install">latest version</Link>.
+                    You receive separate popups for Tallytop updates. You can also manually update by installing the <Link href="https://tallytop.org/install">latest version</Link>.
                 </Paragraph>
             </Card>
 
-            {isEquibopOutdated && (
+            {isTallytopOutdated && (
                 <Card variant="warning">
-                    <HeadingSecondary>Equibop Outdated</HeadingSecondary>
+                    <HeadingSecondary>Tallytop Outdated</HeadingSecondary>
                     <Flex flexDirection="column" gap="0.5em">
-                        <Paragraph>Your version of Equibop is outdated!</Paragraph>
-                        <Button variant="link" onClick={() => VesktopNative.app.openUpdater()}>Open Equibop Updater</Button>
+                        <Paragraph>Your version of Tallytop is outdated!</Paragraph>
+                        <Button variant="link" onClick={() => VesktopNative.app.openUpdater()}>Open Tallytop Updater</Button>
                     </Flex>
                 </Card>
             )}
@@ -85,7 +85,7 @@ function Updater() {
 
     return (
         <SettingsTab>
-            <EquibopSection />
+            <TallytopSection />
             <Heading className={Margins.top16}>Update Preferences</Heading>
             <Paragraph className={Margins.bottom20}>
                 Control how Equicord keeps itself up to date. You can choose to update automatically in the background or be notified when new updates are available.

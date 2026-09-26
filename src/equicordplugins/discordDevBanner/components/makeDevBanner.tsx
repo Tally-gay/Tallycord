@@ -32,8 +32,8 @@ export function makeDevBanner(state?: string): string | JSX.Element {
         .replace(/{chromiumVersion}/g, chromiumVersion)
         .replace(/{clientName}/g, clientInfo.name)
         .replace(/{clientVersion}/g, `v${clientInfo?.version ?? "0.0.0"}`)
-        .replace(/{equibopHash}/g, clientInfo.shortHash ?? "Not Supported")
-        .replace(/{equibopPlatform}/g, `v${clientInfo?.dev ? "Dev Build" : "Standalone"}`)
+        .replace(/{tallytopHash}/g, clientInfo.shortHash ?? "Not Supported")
+        .replace(/{tallytopPlatform}/g, `v${clientInfo?.dev ? "Dev Build" : "Standalone"}`)
         .replace(/\\n|{newline}/g, "__NEWLINE__");
 
     if (!replaced.includes("__NEWLINE__") && !/{.*Icon}/.test(baseFormat)) {
